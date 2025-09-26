@@ -39,9 +39,9 @@ const LoginView = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
+            <Link className="p-3 bg-primary rounded-full" href="/">
               <Sprout className="h-8 w-8 text-primary-foreground" />
-            </div>
+            </Link>
           </div>
           <CardTitle className="text-2xl">
             Farm Information Management
