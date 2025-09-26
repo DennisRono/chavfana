@@ -1,0 +1,314 @@
+{
+  "name": "ChavFana",
+  "description": "ChavFana — the ultimate farm management system helping farmers, agribusinesses, and cooperatives to plan, monitor, and grow smarter.",
+  "url": "https://chavfana.com",
+  "logo": "https://chavfana.com/logo.png",
+  "author": "ChavFana",
+  "twitterHandle": "@chavfana",
+  "foundingYear": "2025",
+  "location": "Nairobi, Kenya",
+  "application": {
+    "version": "1.0.0",
+    "environment": "production",
+    "languages": ["en", "sw", "fr"],
+    "timezone": "Africa/Nairobi",
+    "defaultCurrency": "KES",
+    "theme": {
+      "primaryColor": "#2E7D32",
+      "secondaryColor": "#FFB300",
+      "logoDark": "https://chavfana.com/logo-dark.png"
+    }
+  },
+  "contact": {
+    "email": "support@chavfana.com",
+    "phone": "+254-701-234-567",
+    "address": "GreenHub Towers, Nairobi, Kenya"
+  },
+  "social": {
+    "twitter": "@chavfana",
+    "facebook": "chavfana",
+    "linkedin": "company/chavfana"
+  },
+  "features": {
+    "authentication": {
+      "enabled": true,
+      "methods": ["oauth", "jwt", "email"]
+    },
+    "registration": {
+      "enabled": true,
+      "requireEmailVerification": true
+    },
+    "notifications": {
+      "email": true,
+      "sms": true,
+      "push": true
+    },
+    "analytics": {
+      "enabled": true,
+      "provider": "GoogleAnalytics",
+      "trackingId": "UA-CHAVFANA-1"
+    }
+  },
+  "maintenance": {
+    "enabled": false,
+    "message": "We’re tending the fields… Our system will be back shortly!"
+  },
+  "scheduler": {
+    "enabled": true,
+    "timezone": "Africa/Nairobi"
+  },
+  "environments": {
+    "production": {
+      "url": "https://chavfana.com"
+    },
+    "staging": {
+      "url": "https://staging.chavfana.com"
+    },
+    "development": {
+      "url": "http://localhost:3000"
+    }
+  },
+  "releaseDate": "2025-06-01T09:00:00+03:00",
+  "tagline": "Smart farming made simple.",
+  "shortDescription": "ChavFana is a modern farm management system that helps farmers track, optimize, and grow efficiently.",
+  "company": {
+    "name": "ChavFana",
+    "foundingYear": "2025",
+    "slogan": "The future of farming, today.",
+    "employeeCount": "50+",
+    "globalPresence": {
+      "countries": 3,
+      "offices": 2,
+      "description": "Expanding presence across Africa’s agritech ecosystem."
+    },
+    "achievements": {
+      "projectsDelivered": "200+ farms digitized",
+      "activeClients": "5K+ farmers and cooperatives",
+      "clientSatisfaction": "4.9★",
+      "awards": "Recognized as a leading agritech startup in Africa"
+    }
+  },
+  "mission": {
+    "statement": "To empower farmers and agribusinesses with digital tools that simplify farm management and increase productivity.",
+    "description": "ChavFana is dedicated to making farming smarter by providing a reliable platform that tracks crops, livestock, finances, and logistics seamlessly."
+  },
+  "vision": {
+    "statement": "To become Africa’s leading farm management platform, driving sustainable agriculture and food security.",
+    "description": "We envision a future where every farmer, from smallholders to large cooperatives, uses ChavFana to thrive and feed communities."
+  },
+  "values": [
+    {
+      "name": "Sustainability",
+      "description": "Building solutions that promote eco-friendly and future-proof farming practices."
+    },
+    {
+      "name": "Innovation",
+      "description": "Delivering cutting-edge tools to improve farm productivity and decision-making."
+    },
+    {
+      "name": "Community",
+      "description": "Empowering farmers, cooperatives, and agribusinesses to grow together."
+    },
+    {
+      "name": "Integrity",
+      "description": "Transparency, honesty, and reliability in every interaction."
+    }
+  ],
+  "services": [
+    {
+      "name": "Farm Management",
+      "description": "Track crops, livestock, and resources in one centralized system.",
+      "capabilities": [
+        "Crop Planning",
+        "Livestock Tracking",
+        "Inventory Management",
+        "Farm Reports"
+      ]
+    },
+    {
+      "name": "Financial Tools",
+      "description": "Stay on top of farm finances with smart accounting and insights.",
+      "capabilities": [
+        "Expense Tracking",
+        "Revenue Forecasting",
+        "Budget Planning",
+        "Loan & Grant Management"
+      ]
+    },
+    {
+      "name": "Supply Chain & Logistics",
+      "description": "Connect farms to markets and manage delivery with ease.",
+      "capabilities": [
+        "Marketplace Integration",
+        "Produce Distribution",
+        "Delivery Tracking",
+        "Storage & Cold Chain Support"
+      ]
+    }
+  ],
+  "industries": [
+    {
+      "name": "Agriculture",
+      "description": "Helping farmers manage crops, livestock, and resources efficiently."
+    },
+    {
+      "name": "AgriTech",
+      "description": "Leveraging technology to improve farming operations."
+    },
+    {
+      "name": "Food Supply",
+      "description": "Strengthening food chains from farm to market."
+    },
+    {
+      "name": "Livestock",
+      "description": "Tracking and improving animal health and productivity."
+    },
+    {
+      "name": "Sustainability",
+      "description": "Promoting eco-friendly farming practices."
+    }
+  ],
+  "leadership": [
+    {
+      "name": "Dennis Kibet",
+      "position": "Founder & CEO",
+      "description": "Agritech enthusiast with a passion for transforming farming through technology.",
+      "expertise": [
+        "Digital Agriculture",
+        "Farm Management Systems",
+        "Product Innovation"
+      ],
+      "social": {
+        "linkedin": "linkedin.com/in/denniskibet",
+        "twitter": "twitter.com/denniskibet",
+        "github": "github.com/DennisRono"
+      }
+    },
+    {
+      "name": "Alice Wanjiku",
+      "position": "Chief Operations Officer",
+      "expertise": [
+        "Agribusiness Operations",
+        "Farmer Relations",
+        "Customer Success"
+      ]
+    },
+    {
+      "name": "James Otieno",
+      "position": "Chief Technology Officer",
+      "expertise": [
+        "Platform Engineering",
+        "AgriTech Solutions",
+        "Data-Driven Farming"
+      ]
+    },
+    {
+      "name": "Grace Mwangi",
+      "position": "Chief Marketing Officer",
+      "expertise": ["AgriTech Growth", "Digital Marketing", "Community Engagement"]
+    }
+  ],
+  "caseStudies": [
+    {
+      "title": "Digitizing Smallholder Farms",
+      "category": "Farm Management",
+      "description": "How ChavFana enabled small-scale farmers to increase yields through smart tracking."
+    },
+    {
+      "title": "Financial Insights for Agribusiness",
+      "category": "AgriFinTech",
+      "description": "Helping cooperatives manage loans, grants, and farm revenues with precision."
+    },
+    {
+      "title": "Streamlining Food Supply",
+      "category": "Supply Chain",
+      "description": "Connecting farmers to urban markets and reducing post-harvest losses."
+    }
+  ],
+  "testimonials": [
+    {
+      "name": "John Mwangi",
+      "position": "Farmer",
+      "company": "Mwangi Dairy Farm",
+      "quote": "ChavFana helps me track milk production and manage my farm finances better than ever."
+    },
+    {
+      "name": "Sarah Atieno",
+      "position": "Agribusiness Owner",
+      "company": "GreenHarvest",
+      "quote": "The system simplified my operations — from planning crops to selling produce at the market."
+    },
+    {
+      "name": "Peter Kamau",
+      "position": "Cooperative Manager",
+      "company": "AgriGrow Co-op",
+      "quote": "With ChavFana, we’ve improved transparency and boosted member satisfaction."
+    }
+  ],
+  "seo": {
+    "metaTitle": "ChavFana | Smart Farm Management System",
+    "metaDescription": "Manage your farm smarter with ChavFana — the ultimate farm management system for crops, livestock, and agribusinesses.",
+    "keywords": [
+      "farm management system",
+      "agritech Africa",
+      "digital farming",
+      "crop management",
+      "livestock tracking",
+      "chavfana",
+      "smart farming tools"
+    ],
+    "ogImage": "https://chavfana.com/og-image.jpg",
+    "twitterCard": "summary_large_image"
+  },
+  "structuredData": {
+    "organization": {
+      "@type": "Organization",
+      "name": "ChavFana",
+      "url": "https://chavfana.com",
+      "logo": "https://chavfana.com/logo.png",
+      "foundingDate": "2025",
+      "founders": [
+        {
+          "@type": "Person",
+          "name": "Dennis Kibet"
+        }
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+254-701-234-567",
+        "email": "support@chavfana.com",
+        "contactType": "customer service"
+      },
+      "sameAs": [
+        "https://twitter.com/chavfana",
+        "https://facebook.com/chavfana",
+        "https://linkedin.com/company/chavfana"
+      ],
+      "description": "ChavFana — the smart farm management system for modern agriculture."
+    }
+  },
+  "partners": [
+    {
+      "name": "Safaricom",
+      "logo": "https://chavfana.com/partners/safaricom.png"
+    },
+    {
+      "name": "M-Pesa",
+      "logo": "https://chavfana.com/partners/mpesa.png"
+    },
+    {
+      "name": "USAID",
+      "logo": "https://chavfana.com/partners/usaid.png"
+    },
+    {
+      "name": "FAO",
+      "logo": "https://chavfana.com/partners/fao.png"
+    }
+  ],
+  "legal": {
+    "privacyPolicy": "https://chavfana.com/privacy-policy",
+    "termsOfService": "https://chavfana.com/terms-of-service",
+    "cookiePolicy": "https://chavfana.com/cookie-policy",
+    "accessibilityStatement": "https://chavfana.com/accessibility-statement"
+  }
+}
