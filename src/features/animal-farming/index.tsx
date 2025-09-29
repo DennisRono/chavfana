@@ -16,8 +16,14 @@ import type {
   NewRecord,
   FarmingType,
 } from '@/types/animal-farming'
+import { useAppDispatch } from '@/store/hooks'
+import { createProject } from '@/store/actions/create-project'
+import { ProjectData } from '@/types/project'
+import { useUserLocation } from '@/hooks/use-user-location'
 
 const AnimalFarmingView = () => {
+  const { coordinates, error, permissionState, isLoading, requestLocation } =
+    useUserLocation()
   const [farmingType, setFarmingType] = useState<FarmingType>('individual')
   const [animalData, setAnimalData] = useState<AnimalData>({
     projectName: '',
@@ -49,6 +55,8 @@ const AnimalFarmingView = () => {
     quantity: '',
     cost: '',
   })
+
+  const dispatch = useAppDispatch()
 
   const addIndividualRecord = useCallback(() => {
     setIndividualRecords((prev) => [
@@ -107,6 +115,10 @@ const AnimalFarmingView = () => {
     ],
     [processes, sales, treatments]
   )
+
+  const handleCreateProject = async () => {
+    dispatch(createProject({} as ProjectData))
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -185,7 +197,7 @@ const AnimalFarmingView = () => {
 
         <div className="mt-8 flex justify-end space-x-4">
           <Button variant="outline">Cancel</Button>
-          <Button>Save Project</Button>
+          <Button onClick={() => handleCreateProject()}>Save Project</Button>
         </div>
       </main>
     </div>

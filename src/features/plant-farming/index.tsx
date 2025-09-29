@@ -31,8 +31,11 @@ import type {
   SupplementsAction,
   LandAction,
 } from '@/types/plant-farming'
+import { useUserLocation } from '@/hooks/use-user-location'
 
 const PlantFarmingView = () => {
+  const { coordinates, error, permissionState, isLoading, requestLocation } =
+    useUserLocation()
   const [landDetails, dispatchLand] = useReducer(
     landReducer,
     initialLandDetails
