@@ -10,18 +10,13 @@ export const login = createAsyncThunk<
   { rejectValue: ErrorResponse }
 >('auth/login', async (credentials, { rejectWithValue }) => {
   try {
-    const urlEncodedBody = new URLSearchParams()
-    urlEncodedBody.append('grant_type', 'password')
-    urlEncodedBody.append('username', credentials.username)
-    urlEncodedBody.append('password', credentials.password)
-
     const response = await fetch(`${BASE_URL}/api/user/login/`, {
       method: 'POST',
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: urlEncodedBody.toString(),
+      body: JSON.stringify(credentials),
     })
 
     if (!response.ok) {

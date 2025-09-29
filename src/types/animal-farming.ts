@@ -31,14 +31,6 @@ export interface ActivityRecord {
   timestamp: string
 }
 
-export interface NewRecord {
-  type: 'process' | 'sale' | 'treatment'
-  description: string
-  date: string
-  quantity: string
-  cost: string
-}
-
 export interface ActivitySection {
   title: string
   data: ActivityRecord[]

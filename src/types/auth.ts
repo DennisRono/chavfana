@@ -33,7 +33,12 @@ export interface UserProfile {
 }
 
 export interface AuthState {
-  user: UserProfile | null
+  user: {
+    phone_number: string
+    email: string
+    id: string
+    role: string
+  } | null
   access_token: string | null
   refresh_token: string | null
   isAuthenticated: boolean
@@ -43,25 +48,28 @@ export interface AuthState {
 }
 
 export interface LoginCredentials {
-  username: string
+  phone_number: string
+  email: string
   password: string
-  rememberMe?: boolean
 }
 
 export interface RegisterData {
-  username: string
   email: string
   password: string
   first_name: string
   last_name: string
   phone: string
+  password1: string
+  password2: string
 }
 
 export interface AuthResponse {
-  user: UserProfile
-  access_token: string | null
-  refresh_token: string | null
-  message?: string
+  phone_number: string
+  email: string
+  access: string
+  refresh: string
+  id: string
+  role: string
 }
 
 export interface TokenPayload {

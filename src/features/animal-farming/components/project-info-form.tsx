@@ -96,6 +96,7 @@ export function ProjectInfoForm({
             id="startDate"
             type="date"
             value={animalData.startDate}
+            className='w-22'
             onChange={(e) =>
               setAnimalData((prev) => ({ ...prev, startDate: e.target.value }))
             }

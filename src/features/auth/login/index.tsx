@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -10,14 +10,18 @@ import { useAppDispatch } from '@/store/hooks'
 import { AppDispatch } from '@/store/store'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { login, register } from '@/store/actions/auth'
+import { LoginCredentials, RegisterData } from '@/types/auth'
 
 const LoginView = () => {
   const loading = false
   const [isLoading, setIsLoading] = useState(false)
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email')
+  const [loginMethod, setLoginMethod] = useState<'email' | 'phone_number'>(
+    'email'
+  )
   const [formData, setFormData] = useState({
     email: '',
-    phone: '',
+    phone_number: '',
     password1: '',
     password2: '',
     first_name: '',
@@ -29,10 +33,45 @@ const LoginView = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    dispatch(
+      login({
+        ...(formData.email !== '' && loginMethod === 'email'
+          ? { email: formData.email }
+          : {}),
+        ...(formData.phone_number !== '' && loginMethod === 'phone_number'
+          ? { phone_number: formData.phone_number }
+          : {}),
+        password: formData.password,
+      } as LoginCredentials)
+    )
+      .then(() => {})
+      .catch(() => {})
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    dispatch(
+      register({
+        ...(formData.email !== '' ? { email: formData.email } : {}),
+        ...(formData.phone_number !== ''
+          ? { phone_number: formData.phone_number }
+          : {}),
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        password1: formData.password1,
+        password2: formData.password2,
+      } as RegisterData)
+    )
+      .then(() => {})
+      .catch(() => {})
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -70,9 +109,11 @@ const LoginView = () => {
                   </Button>
                   <Button
                     type="button"
-                    variant={loginMethod === 'phone' ? 'default' : 'outline'}
+                    variant={
+                      loginMethod === 'phone_number' ? 'default' : 'outline'
+                    }
                     size="sm"
-                    onClick={() => setLoginMethod('phone')}
+                    onClick={() => setLoginMethod('phone_number')}
                     className="flex-1"
                   >
                     <Phone className="h-4 w-4 mr-2" />
@@ -90,10 +131,12 @@ const LoginView = () => {
                     placeholder={
                       loginMethod === 'email'
                         ? 'Enter your email'
-                        : 'Enter your phone number'
+                        : 'Enter your phone_number number'
                     }
                     value={
-                      loginMethod === 'email' ? formData.email : formData.phone
+                      loginMethod === 'email'
+                        ? formData.email
+                        : formData.phone_number
                     }
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -185,9 +228,11 @@ const LoginView = () => {
                   </Button>
                   <Button
                     type="button"
-                    variant={loginMethod === 'phone' ? 'default' : 'outline'}
+                    variant={
+                      loginMethod === 'phone_number' ? 'default' : 'outline'
+                    }
                     size="sm"
-                    onClick={() => setLoginMethod('phone')}
+                    onClick={() => setLoginMethod('phone_number')}
                     className="flex-1"
                   >
                     <Phone className="h-4 w-4 mr-2" />
@@ -205,10 +250,12 @@ const LoginView = () => {
                     placeholder={
                       loginMethod === 'email'
                         ? 'Enter your email'
-                        : 'Enter your phone number'
+                        : 'Enter your phone_number number'
                     }
                     value={
-                      loginMethod === 'email' ? formData.email : formData.phone
+                      loginMethod === 'email'
+                        ? formData.email
+                        : formData.phone_number
                     }
                     onChange={(e) =>
                       setFormData((prev) => ({

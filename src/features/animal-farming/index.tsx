@@ -7,13 +7,11 @@ import { Plus, Beef, Users } from 'lucide-react'
 import { ProjectInfoForm } from './components/project-info-form'
 import { AnimalRecordRow } from './components/animal-record-row'
 import { GroupStatisticsForm } from './components/group-statistics-form'
-import { ActivityRecords } from './components/activity-records'
 import type {
   AnimalData,
   IndividualRecord,
   GroupData,
   ActivityRecord,
-  NewRecord,
   FarmingType,
 } from '@/types/animal-farming'
 import { useAppDispatch } from '@/store/hooks'
@@ -48,14 +46,6 @@ const AnimalFarmingView = () => {
   const [sales, setSales] = useState<ActivityRecord[]>([])
   const [treatments, setTreatments] = useState<ActivityRecord[]>([])
 
-  const [newRecord, setNewRecord] = useState<NewRecord>({
-    type: 'process',
-    description: '',
-    date: '',
-    quantity: '',
-    cost: '',
-  })
-
   const dispatch = useAppDispatch()
 
   const addIndividualRecord = useCallback(() => {
@@ -76,44 +66,6 @@ const AnimalFarmingView = () => {
       )
     },
     []
-  )
-
-  const addRecord = useCallback(() => {
-    const record: ActivityRecord = {
-      ...newRecord,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-    }
-
-    if (newRecord.type === 'process') setProcesses((prev) => [...prev, record])
-    if (newRecord.type === 'sale') setSales((prev) => [...prev, record])
-    if (newRecord.type === 'treatment')
-      setTreatments((prev) => [...prev, record])
-
-    setNewRecord({
-      type: 'process',
-      description: '',
-      date: '',
-      quantity: '',
-      cost: '',
-    })
-  }, [newRecord])
-
-  const removeRecord = useCallback((type: string, id: number) => {
-    if (type === 'process')
-      setProcesses((prev) => prev.filter((p) => p.id !== id))
-    if (type === 'sale') setSales((prev) => prev.filter((s) => s.id !== id))
-    if (type === 'treatment')
-      setTreatments((prev) => prev.filter((t) => t.id !== id))
-  }, [])
-
-  const activitySections = useMemo(
-    () => [
-      { title: 'Processes', data: processes, type: 'process' as const },
-      { title: 'Sales', data: sales, type: 'sale' as const },
-      { title: 'Treatments', data: treatments, type: 'treatment' as const },
-    ],
-    [processes, sales, treatments]
   )
 
   const handleCreateProject = async () => {
@@ -141,12 +93,18 @@ const AnimalFarmingView = () => {
           value={farmingType}
           onValueChange={(value) => setFarmingType(value as FarmingType)}
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="individual" className="flex items-center gap-2">
+          <TabsList className="grid !w-[500px] grid-cols-2 justify-start border-b rounded-none !bg-transparent">
+            <TabsTrigger
+              value="individual"
+              className="flex items-center gap-2 rounded-none bg-transparent h-full data-[state=active]:shadow-none border border-transparent border-b-border data-[state=active]:border-border data-[state=active]:border-b-background -mb-[2px] rounded-t"
+            >
               <Beef className="h-4 w-4" />
               Individual Records
             </TabsTrigger>
-            <TabsTrigger value="group" className="flex items-center gap-2">
+            <TabsTrigger
+              value="group"
+              className="flex items-center gap-2 rounded-none bg-transparent h-full data-[state=active]:shadow-none border border-transparent border-b-border data-[state=active]:border-border data-[state=active]:border-b-background -mb-[2px] rounded-t"
+            >
               <Users className="h-4 w-4" />
               Group Records
             </TabsTrigger>
@@ -186,14 +144,6 @@ const AnimalFarmingView = () => {
             />
           </TabsContent>
         </Tabs>
-
-        <ActivityRecords
-          activitySections={activitySections}
-          newRecord={newRecord}
-          setNewRecord={setNewRecord}
-          addRecord={addRecord}
-          removeRecord={removeRecord}
-        />
 
         <div className="mt-8 flex justify-end space-x-4">
           <Button variant="outline">Cancel</Button>
