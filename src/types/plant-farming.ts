@@ -56,6 +56,5 @@ export interface PlantPestResponse {}
 export interface PlantPestData {}
 export interface PlantingEventResponse {}
 export interface PlantingEventData {}
-
 export interface FertilitySpreadResponse {}
 export interface FertilitySpreadData {}

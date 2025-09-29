@@ -17,13 +17,13 @@
   --secondary: #f4a300; 
   --secondary-foreground: #1a1a1a;
   --muted: #f4f7f4; 
-  --muted-foreground: #6c756b;
+  --muted-foreground: #8d8d8d;
   --accent: #d8e7db; 
   --accent-foreground: #1a1a1a;
   --destructive: #ff0000;
   --destructive-foreground: #ffffff;
   --border: #e1e7e1;
-  --input: #e1e7e1;
+  --input: #000000;
   --ring: #8fbf90;
   --chart-1: #117216; 
   --chart-2: #6ea966; 

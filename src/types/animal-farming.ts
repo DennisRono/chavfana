@@ -21,21 +21,6 @@ export interface GroupData {
   averageWeight: string
 }
 
-export interface ActivityRecord {
-  id: number
-  type: 'process' | 'sale' | 'treatment'
-  description: string
-  date: string
-  quantity: string
-  cost: string
-  timestamp: string
-}
-
-export interface ActivitySection {
-  title: string
-  data: ActivityRecord[]
-  type: 'process' | 'sale' | 'treatment'
-}
 
 export type FarmingType = 'individual' | 'group'
 export type HealthStatus = 'healthy' | 'sick' | 'recovering' | 'pregnant'

@@ -6,6 +6,7 @@ import {
   useRef,
   useMemo,
   useTransition,
+  useEffect,
 } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,11 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, MapPin, Wheat } from 'lucide-react'
+import { Plus, MapPin, Wheat, Navigation, CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import { SupplementRow } from './components/supplement-row'
 import { UpdatableFieldList } from './components/updatable-field-list'
-import { useDebouncedCallback } from '@/hooks/use-debounced'
 import { FIELD_LABELS } from '@/constants/plant-farming'
+import type { PlantingProject, PlantSpecies } from '@/types/project'
 import type {
   LandDetails,
   FieldRecord,
@@ -32,10 +34,45 @@ import type {
   LandAction,
 } from '@/types/plant-farming'
 import { useUserLocation } from '@/hooks/use-user-location'
+import { useAppDispatch } from '@/store/hooks'
+import { createProject } from '@/store/actions/create-project'
+
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
+}
+
+type PermissionState = 'granted' | 'prompt' | 'denied' | 'unsupported'
 
 const PlantFarmingView = () => {
   const { coordinates, error, permissionState, isLoading, requestLocation } =
     useUserLocation()
+
+  const [projectData, setProjectData] = useState<DeepPartial<PlantingProject>>({
+    name: '',
+    created_date: new Date().toISOString().split('T')[0],
+    type: 'PlantingProject',
+    status: 'Planning',
+    location: {
+      country: '',
+      city: '',
+      coordinate: {
+        latitude: 0,
+        longitude: 0,
+      },
+    },
+    planting_event: {
+      planting_date: '',
+      area_size: '',
+      area_size_unit: 'acres',
+      end_date: '',
+      notes: '',
+      stage: 'Planning',
+      type: '',
+      name: '',
+      species: [],
+    },
+  })
+
   const [landDetails, dispatchLand] = useReducer(
     landReducer,
     initialLandDetails
@@ -62,37 +99,10 @@ const PlantFarmingView = () => {
 
   const idCounterRef = useRef<number>(Date.now())
   const [isPending, startTransition] = useTransition()
+  const dispatch = useAppDispatch()
 
   const fieldLabels = useMemo(() => FIELD_LABELS, [])
   const supplementsCount = useMemo(() => supplements.length, [supplements])
-
-  const [debouncedPatch] = useDebouncedCallback(
-    (patch: Partial<LandDetails>) => {
-      dispatchLand({ type: 'patch', payload: patch })
-    },
-    250
-  )
-
-  const handleLongitudeChange = useCallback(
-    (value: string) => {
-      debouncedPatch({ longitude: value })
-    },
-    [debouncedPatch]
-  )
-
-  const handleLatitudeChange = useCallback(
-    (value: string) => {
-      debouncedPatch({ latitude: value })
-    },
-    [debouncedPatch]
-  )
-
-  const handleSizeChange = useCallback(
-    (value: string) => {
-      debouncedPatch({ size: value })
-    },
-    [debouncedPatch]
-  )
 
   const addSupplement = useCallback(() => {
     idCounterRef.current = idCounterRef.current + 1
@@ -135,26 +145,6 @@ const PlantFarmingView = () => {
     []
   )
 
-  const onChangeProjectName = useCallback((value: string) => {
-    dispatchLand({ type: 'patch', payload: { projectName: value } })
-  }, [])
-
-  const onChangeLocation = useCallback((value: string) => {
-    dispatchLand({ type: 'patch', payload: { location: value } })
-  }, [])
-
-  const onChangeSoilType = useCallback((value: string) => {
-    dispatchLand({ type: 'patch', payload: { soilType: value } })
-  }, [])
-
-  const onChangeCropPlanted = useCallback((value: string) => {
-    dispatchLand({ type: 'patch', payload: { cropPlanted: value } })
-  }, [])
-
-  const onChangePlantingDate = useCallback((value: string) => {
-    dispatchLand({ type: 'patch', payload: { plantingDate: value } })
-  }, [])
-
   const supplementRows = useMemo(() => {
     return supplements.map((s) => (
       <SupplementRow
@@ -168,6 +158,28 @@ const PlantFarmingView = () => {
   }, [supplements, updateSupplement, removeSupplement, supplementsCount])
 
   const onCancel = useCallback(() => {
+    setProjectData({
+      name: '',
+      created_date: new Date().toISOString().split('T')[0],
+      type: 'PlantingProject',
+      status: 'Planning',
+      location: {
+        country: '',
+        city: '',
+        coordinate: { latitude: 0, longitude: 0 },
+      },
+      planting_event: {
+        planting_date: '',
+        area_size: '',
+        area_size_unit: 'acres',
+        end_date: '',
+        notes: '',
+        stage: 'Planning',
+        type: '',
+        name: '',
+        species: [],
+      },
+    })
     dispatchLand({ type: 'reset' })
     dispatchSupplements({
       type: 'set',
@@ -184,130 +196,362 @@ const PlantFarmingView = () => {
   }, [])
 
   const onSave = useCallback(() => {
-    console.log('Saving:', { landDetails, supplements, updatableFields })
-  }, [landDetails, supplements, updatableFields])
+    const completeProjectData: PlantingProject = {
+      name: projectData.name || 'Untitled Plant Project',
+      created_date:
+        projectData.created_date || new Date().toISOString().split('T')[0],
+      type: 'PlantingProject',
+      status: projectData.status || 'Planning',
+      location: {
+        country: projectData.location?.country ?? '',
+        city: projectData.location?.city ?? '',
+        coordinate: {
+          latitude: projectData.location?.coordinate?.latitude ?? 0,
+          longitude: projectData.location?.coordinate?.longitude ?? 0,
+        },
+      },
+      planting_event: {
+        planting_date:
+          projectData.planting_event?.planting_date ??
+          new Date().toISOString().split('T')[0],
+        area_size: projectData.planting_event?.area_size ?? landDetails.size,
+        area_size_unit: projectData.planting_event?.area_size_unit ?? 'acres',
+        end_date: projectData.planting_event?.end_date ?? '',
+        notes: projectData.planting_event?.notes ?? '',
+        stage: projectData.planting_event?.stage ?? 'Planning',
+        type: projectData.planting_event?.type ?? landDetails.cropPlanted,
+        name:
+          projectData.planting_event?.name ??
+          projectData.name ??
+          'Default Event',
+        species: updatableFields.species.map((field) => ({
+          species: {
+            variety: field.value.split(' - ')[0] || field.value,
+            name: field.value.split(' - ')[1] || field.value,
+            type: landDetails.cropPlanted || 'Unknown',
+            bloom_szn: 'Unknown',
+            notes: '',
+          },
+          amount: '1',
+          unit: 'unit',
+        })) as PlantSpecies[],
+      },
+    }
+
+    dispatch(createProject(completeProjectData))
+  }, [projectData, landDetails, updatableFields, dispatch])
+
+  useEffect(() => {
+    if (permissionState === 'granted' && coordinates) {
+      setProjectData((prev) => ({
+        ...prev,
+        location: {
+          ...prev.location,
+          coordinate: {
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+          },
+        },
+      }))
+    }
+  }, [permissionState, coordinates])
+
+  const handleLocationRequest = useCallback(async () => {
+    try {
+      await requestLocation()
+      if (coordinates) {
+        toast.success('Location accessed successfully!', {
+          description: `Coordinates: ${coordinates.latitude.toFixed(
+            4
+          )}, ${coordinates.longitude.toFixed(4)}`,
+        })
+      }
+    } catch (err) {
+      toast.error('Failed to access location', {
+        description:
+          String(error) ||
+          'Please check your browser permissions and try again.',
+      })
+    }
+  }, [requestLocation, coordinates, error])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <main className="container mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Plant Farming Management
-          </h2>
-          <p className="text-muted-foreground">
-            Manage your crop projects and land details
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Land Details
+          <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-500 text-white rounded-t-lg py-2">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <MapPin className="h-6 w-6" />
+                Project Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 p-6">
               <div className="space-y-2">
-                <Label htmlFor="projectName">Project Name</Label>
+                <Label htmlFor="projectName" className="text-sm font-semibold">
+                  Project Name
+                </Label>
                 <Input
                   id="projectName"
                   placeholder="e.g., Wheat Field A"
-                  value={landDetails.projectName}
-                  onChange={(e) => onChangeProjectName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  placeholder="e.g., North Field Section"
-                  value={landDetails.location}
-                  onChange={(e) => onChangeLocation(e.target.value)}
+                  className="h-11"
+                  value={projectData.name || ''}
+                  onChange={(e) =>
+                    setProjectData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="longitude">Longitude</Label>
+                  <Label htmlFor="city" className="text-sm font-semibold">
+                    City
+                  </Label>
                   <Input
-                    id="longitude"
-                    placeholder="e.g., -74.0060"
-                    value={landDetails.longitude}
-                    onChange={(e) => handleLongitudeChange(e.target.value)}
+                    id="city"
+                    placeholder="e.g., Springfield"
+                    className="h-11"
+                    value={projectData.location?.city || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        location: {
+                          ...prev.location,
+                          city: e.target.value,
+                          country: prev.location?.country || '',
+                          coordinate: prev.location?.coordinate || {
+                            latitude: 0,
+                            longitude: 0,
+                          },
+                        },
+                      }))
+                    }
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="latitude">Latitude</Label>
+                  <Label htmlFor="country" className="text-sm font-semibold">
+                    Country
+                  </Label>
                   <Input
-                    id="latitude"
-                    placeholder="e.g., 40.7128"
-                    value={landDetails.latitude}
-                    onChange={(e) => handleLatitudeChange(e.target.value)}
+                    id="country"
+                    placeholder="e.g., United States"
+                    className="h-11"
+                    value={projectData.location?.country || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        location: {
+                          ...prev.location,
+                          country: e.target.value,
+                          city: prev.location?.city || '',
+                          coordinate: prev.location?.coordinate || {
+                            latitude: 0,
+                            longitude: 0,
+                          },
+                        },
+                      }))
+                    }
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="soilType">Soil Type</Label>
-                <Select onValueChange={onChangeSoilType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select soil type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="clay">Clay</SelectItem>
-                    <SelectItem value="sandy">Sandy</SelectItem>
-                    <SelectItem value="loamy">Loamy</SelectItem>
-                    <SelectItem value="silty">Silty</SelectItem>
-                    <SelectItem value="peaty">Peaty</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">
+                    Location Coordinates
+                  </Label>
+                  {permissionState === 'granted' && (
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-xs font-medium">Auto-detected</span>
+                    </div>
+                  )}
+                </div>
+
+                {permissionState === 'granted' ? (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs text-green-700 dark:text-green-300">
+                          Latitude
+                        </Label>
+                        <p className="font-mono text-sm font-medium">
+                          {coordinates?.latitude?.toFixed(6) || '0.000000'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-green-700 dark:text-green-300">
+                          Longitude
+                        </Label>
+                        <p className="font-mono text-sm font-medium">
+                          {coordinates?.longitude?.toFixed(6) || '0.000000'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="latitude" className="text-sm">
+                          Latitude
+                        </Label>
+                        <Input
+                          id="latitude"
+                          placeholder="e.g., 40.7128"
+                          className="h-11 font-mono"
+                          value={
+                            projectData.location?.coordinate?.latitude?.toString() ||
+                            ''
+                          }
+                          onChange={(e) =>
+                            setProjectData((prev) => ({
+                              ...prev,
+                              location: {
+                                ...prev.location,
+                                coordinate: {
+                                  ...prev.location?.coordinate,
+                                  latitude:
+                                    Number.parseFloat(e.target.value) || 0,
+                                  longitude:
+                                    prev.location?.coordinate?.longitude || 0,
+                                },
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="longitude" className="text-sm">
+                          Longitude
+                        </Label>
+                        <Input
+                          id="longitude"
+                          placeholder="e.g., -74.0060"
+                          className="h-11 font-mono"
+                          value={
+                            projectData.location?.coordinate?.longitude?.toString() ||
+                            ''
+                          }
+                          onChange={(e) =>
+                            setProjectData((prev) => ({
+                              ...prev,
+                              location: {
+                                ...prev.location,
+                                coordinate: {
+                                  ...prev.location?.coordinate,
+                                  longitude:
+                                    Number.parseFloat(e.target.value) || 0,
+                                  latitude:
+                                    prev.location?.coordinate?.latitude || 0,
+                                },
+                              },
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {(permissionState === 'prompt' ||
+                      permissionState === 'denied') && (
+                      <Button
+                        onClick={handleLocationRequest}
+                        disabled={isLoading}
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                      >
+                        <Navigation className="h-4 w-4 mr-2" />
+                        {isLoading
+                          ? 'Requesting Location...'
+                          : 'Use Current Location'}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cropPlanted">Crop Planted</Label>
+                <Label htmlFor="cropType" className="text-sm font-semibold">
+                  Crop Type
+                </Label>
                 <Input
-                  id="cropPlanted"
+                  id="cropType"
                   placeholder="e.g., Wheat, Corn, Rice"
-                  value={landDetails.cropPlanted}
-                  onChange={(e) => onChangeCropPlanted(e.target.value)}
+                  className="h-11"
+                  value={projectData.planting_event?.type || ''}
+                  onChange={(e) =>
+                    setProjectData((prev) => ({
+                      ...prev,
+                      planting_event: {
+                        ...prev.planting_event,
+                        type: e.target.value,
+                      },
+                    }))
+                  }
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="size">Size (acres)</Label>
+                  <Label htmlFor="areaSize" className="text-sm font-semibold">
+                    Area Size
+                  </Label>
                   <Input
-                    id="size"
+                    id="areaSize"
                     placeholder="e.g., 25"
-                    value={landDetails.size}
-                    onChange={(e) => handleSizeChange(e.target.value)}
+                    className="h-11"
+                    value={projectData.planting_event?.area_size || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        planting_event: {
+                          ...prev.planting_event,
+                          area_size: e.target.value,
+                        },
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="plantingDate">Planting Date</Label>
+                  <Label
+                    htmlFor="plantingDate"
+                    className="text-sm font-semibold"
+                  >
+                    Planting Date
+                  </Label>
                   <Input
                     id="plantingDate"
                     type="date"
-                    value={landDetails.plantingDate}
-                    onChange={(e) => onChangePlantingDate(e.target.value)}
+                    className="h-11"
+                    value={projectData.planting_event?.planting_date || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        planting_event: {
+                          ...prev.planting_event,
+                          planting_date: e.target.value,
+                        },
+                      }))
+                    }
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Required Supplements</CardTitle>
+          <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-t-lg py-2">
+              <CardTitle className="text-xl">Required Supplements</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-6">
               {supplementRows}
               <Button
                 onClick={addSupplement}
                 variant="outline"
-                className="w-full bg-transparent"
+                className="w-full h-11 border-2 border-dashed border-orange-300 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20 bg-transparent"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Supplement
@@ -316,24 +560,24 @@ const PlantFarmingView = () => {
           </Card>
         </div>
 
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wheat className="h-5 w-5" />
+        <Card className="mt-8 shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-emerald-700 to-teal-500 text-white rounded-t-lg py-2">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Wheat className="h-6 w-6" />
               Plant Event Records
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             <div className="flex gap-4 items-end">
               <div className="flex-1 space-y-2">
-                <Label>Field Type</Label>
+                <Label className="text-sm font-semibold">Field Type</Label>
                 <Select
                   value={selectedField}
                   onValueChange={(value) =>
                     setSelectedField(value as UpdatableFieldKey)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -346,16 +590,21 @@ const PlantFarmingView = () => {
                 </Select>
               </div>
               <div className="flex-2 space-y-2">
-                <Label>Add New Record</Label>
+                <Label className="text-sm font-semibold">Add New Record</Label>
                 <Input
                   placeholder={`Enter ${fieldLabels[
                     selectedField
                   ].toLowerCase()} details`}
+                  className="h-11"
                   value={newFieldValue}
                   onChange={(e) => setNewFieldValue(e.target.value)}
                 />
               </div>
-              <Button onClick={addFieldValue} disabled={isPending}>
+              <Button
+                onClick={addFieldValue}
+                disabled={isPending}
+                className="h-11 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add
               </Button>
@@ -370,14 +619,45 @@ const PlantFarmingView = () => {
         </Card>
 
         <div className="mt-8 flex justify-end space-x-4">
-          <Button variant="outline" onClick={onCancel}>
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            className="h-11 px-8 border-2 bg-transparent"
+          >
             Cancel
           </Button>
-          <Button onClick={onSave}>Save Project</Button>
+          <Button
+            onClick={onSave}
+            className="h-11 px-8 bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-700 hover:to-emerald-700"
+          >
+            Save Project
+          </Button>
         </div>
       </main>
     </div>
   )
+}
+
+const initialLandDetails: LandDetails = {
+  projectName: '',
+  location: '',
+  longitude: '',
+  latitude: '',
+  soilType: '',
+  cropPlanted: '',
+  size: '',
+  plantingDate: '',
+}
+
+function landReducer(state: LandDetails, action: LandAction): LandDetails {
+  switch (action.type) {
+    case 'patch':
+      return { ...state, ...action.payload }
+    case 'reset':
+      return action.payload ?? initialLandDetails
+    default:
+      return state
+  }
 }
 
 function supplementsReducer(
@@ -399,28 +679,6 @@ function supplementsReducer(
       )
     case 'set':
       return action.payload
-    default:
-      return state
-  }
-}
-
-const initialLandDetails: LandDetails = {
-  projectName: '',
-  location: '',
-  longitude: '',
-  latitude: '',
-  soilType: '',
-  cropPlanted: '',
-  size: '',
-  plantingDate: '',
-}
-
-function landReducer(state: LandDetails, action: LandAction): LandDetails {
-  switch (action.type) {
-    case 'patch':
-      return { ...state, ...action.payload }
-    case 'reset':
-      return action.payload ?? initialLandDetails
     default:
       return state
   }
