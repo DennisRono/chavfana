@@ -22,7 +22,7 @@ import { Plus, MapPin, Wheat } from 'lucide-react'
 import { SupplementRow } from './components/supplement-row'
 import { UpdatableFieldList } from './components/updatable-field-list'
 import { useDebouncedCallback } from '@/hooks/use-debounced'
-import { FIELD_LABELS } from '@/constants/farming'
+import { FIELD_LABELS } from '@/constants/plant-farming'
 import type {
   LandDetails,
   FieldRecord,
@@ -30,7 +30,7 @@ import type {
   Supplement,
   SupplementsAction,
   LandAction,
-} from '@/types/farming'
+} from '@/types/plant-farming'
 
 const PlantFarmingView = () => {
   const [landDetails, dispatchLand] = useReducer(

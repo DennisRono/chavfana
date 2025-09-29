@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import type { FieldRecord, UpdatableFieldKey } from '@/types/farming'
+import type { FieldRecord, UpdatableFieldKey } from '@/types/plant-farming'
 
 interface UpdatableFieldListProps {
   updatableFields: Record<UpdatableFieldKey, FieldRecord[]>

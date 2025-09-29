@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Trash2 } from "lucide-react"
-import type { Supplement } from "@/types/farming"
+import type { Supplement } from "@/types/plant-farming"
 
 interface SupplementRowProps {
   supplement: Supplement

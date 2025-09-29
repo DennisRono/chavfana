@@ -1,4 +1,4 @@
-import type { UpdatableFieldKey } from "@/types/farming"
+import type { UpdatableFieldKey } from "@/types/plant-farming"
 
 export const FIELD_LABELS: Record<UpdatableFieldKey, string> = {
   fertilitySpread: "Fertility Spread",
