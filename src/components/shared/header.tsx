@@ -79,7 +79,7 @@ const Header = ({ onSearch }: HeaderProps) => {
                 </div>
                 <div className="hidden sm:block">
                   <h1 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">
-                    AgriFlow
+                    ChavFana
                   </h1>
                   <p className="text-sm text-muted-foreground font-medium">
                     Farm Management System

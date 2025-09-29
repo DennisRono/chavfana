@@ -54,3 +54,18 @@ export type AnimalType =
   | 'pig'
   | 'chicken'
   | 'duck'
+
+/** ACTIONS TYPES */
+
+export interface AnimalDiseaseManagementResponse {}
+export interface AnimalDiseaseManagementData {}
+export interface AnimalDiseaseResponse {}
+export interface AnimalDiseaseData {}
+export interface AnimalFeedResponse {}
+export interface AnimalFeedData {}
+export interface AnimalGroupResponse {}
+export interface AnimalGroupData {}
+export interface AnimalHarvestResponse {}
+export interface AnimalHarvestData {}
+export interface AnimalProcessResponse {}
+export interface AnimalProcessData {}

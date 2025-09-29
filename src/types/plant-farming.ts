@@ -41,3 +41,21 @@ export type SupplementsAction =
 export type LandAction =
   | { type: 'patch'; payload: Partial<LandDetails> }
   | { type: 'reset'; payload?: LandDetails }
+
+/** PLANT ACTIONS */
+
+export interface PlantDiseaseManagementResponse {}
+export interface PlantDiseaseManagementData {}
+export interface PlantDiseaseResponse {}
+export interface PlantDiseaseData {}
+export interface PlantHarvestResponse {}
+export interface PlantHarvestData {}
+export interface PlantPestManagementResponse {}
+export interface PlantPestManagementData {}
+export interface PlantPestResponse {}
+export interface PlantPestData {}
+export interface PlantingEventResponse {}
+export interface PlantingEventData {}
+
+export interface FertilitySpreadResponse {}
+export interface FertilitySpreadData {}
