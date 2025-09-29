@@ -29,6 +29,7 @@ import {
   Truck,
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Homepage() {
   return (
@@ -71,8 +72,16 @@ export default function Homepage() {
         </div>
       </header>
 
-      <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
+      <section className="py-20 px-4 relative min-h-[70vh]">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/modern-farm-with-green-fields-and-farming-equipmen.jpg"
+            alt="Modern farming landscape"
+            fill
+            className="object-cover opacity-20"
+          />
+        </div>
+        <div className="container mx-auto text-center relative z-10 flex flex-col items-center justify-center">
           <Badge variant="secondary" className="mb-4">
             Smart farming made simple
           </Badge>
@@ -86,10 +95,12 @@ export default function Homepage() {
             management and increase productivity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-8">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/dashboard">
+              <Button size="lg" className="text-lg px-8">
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="lg"
@@ -137,6 +148,14 @@ export default function Homepage() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg">
               <CardHeader>
+                <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                  <Image
+                    src="/farmer-using-tablet-in-green-crop-field-with-plant.jpg"
+                    alt="Farm management with technology"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Sprout className="h-6 w-6 text-primary" />
                 </div>
@@ -170,6 +189,14 @@ export default function Homepage() {
 
             <Card className="border-0 shadow-lg">
               <CardHeader>
+                <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                  <Image
+                    src="/farmer-counting-money-with-calculator-and-farm-pro.jpg"
+                    alt="Farm financial management"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
                   <DollarSign className="h-6 w-6 text-secondary" />
                 </div>
@@ -203,6 +230,14 @@ export default function Homepage() {
 
             <Card className="border-0 shadow-lg">
               <CardHeader>
+                <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
+                  <Image
+                    src="/modern-farming-truck-loading-fresh-vegetables-and-.jpg"
+                    alt="Farm supply chain and logistics"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Truck className="h-6 w-6 text-primary" />
                 </div>
@@ -338,6 +373,14 @@ export default function Homepage() {
               </div>
             </div>
             <div className="space-y-6">
+              <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
+                <Image
+                  src="/happy-african-farmers-working-together-in-green-ve.jpg"
+                  alt="Happy farmers working together"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
@@ -365,6 +408,62 @@ export default function Homepage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Modern Farming Technology
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              See how technology is transforming agriculture across Africa
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="relative h-64 rounded-lg overflow-hidden">
+              <Image
+                src="/modern-tractor-with-gps-technology-working-in-larg.jpg"
+                alt="Modern farming equipment"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold mb-1">Smart Machinery</h3>
+                <p className="text-sm opacity-90">
+                  GPS-guided farming equipment
+                </p>
+              </div>
+            </div>
+            <div className="relative h-64 rounded-lg overflow-hidden">
+              <Image
+                src="/drone-flying-over-green-crops-field-for-monitoring.jpg"
+                alt="Drone technology in farming"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold mb-1">Drone Monitoring</h3>
+                <p className="text-sm opacity-90">Aerial crop surveillance</p>
+              </div>
+            </div>
+            <div className="relative h-64 rounded-lg overflow-hidden">
+              <Image
+                src="/automated-irrigation-system-watering-green-plants-.jpg"
+                alt="Smart irrigation system"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="font-semibold mb-1">Smart Irrigation</h3>
+                <p className="text-sm opacity-90">Automated water management</p>
+              </div>
             </div>
           </div>
         </div>
@@ -594,7 +693,7 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-primary text-primary-foreground">
+      <section className="py-20 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-primary-foreground">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Transform Your Farm?
