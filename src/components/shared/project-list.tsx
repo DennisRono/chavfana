@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, Calendar, MapPin, Wheat, Beef, Plus, Eye } from 'lucide-react'
 import { useState } from 'react'
-import ProjectDetailModal from './project-detail-modal'
 import { updateLastTime } from '@/utils/functions'
+import Link from 'next/link'
 interface ProjectsListProps {
   searchQuery?: string
   apiProjects: {
@@ -29,13 +29,12 @@ const ProjectsList = ({
   error,
 }: ProjectsListProps) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedProject, setSelectedProject] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const sampleProjects = [
     {
       id: 1,
       name: 'Wheat Field A',
+      slug: 'wheat-field-a',
       type: 'plant',
       location: 'North Field',
       status: 'Active',
@@ -45,6 +44,7 @@ const ProjectsList = ({
     {
       id: 2,
       name: 'Dairy Cattle Group',
+      slug: 'dairy-cattle-group',
       type: 'animal',
       location: 'Barn 1',
       status: 'Active',
@@ -54,6 +54,7 @@ const ProjectsList = ({
     {
       id: 3,
       name: 'Corn Plantation B',
+      slug: 'corn-plantation-b',
       type: 'plant',
       location: 'South Field',
       status: 'Planning',
@@ -63,6 +64,7 @@ const ProjectsList = ({
     {
       id: 4,
       name: 'Poultry Farm',
+      slug: 'poultry-farm',
       type: 'animal',
       location: 'Coop 2',
       status: 'Active',
@@ -95,16 +97,6 @@ const ProjectsList = ({
     }
   }
 
-  const openProjectDetail = (project: any) => {
-    setSelectedProject(project)
-    setIsModalOpen(true)
-  }
-
-  const closeProjectDetail = () => {
-    setSelectedProject(null)
-    setIsModalOpen(false)
-  }
-
   return (
     <>
       <Card className="p-4">
@@ -132,8 +124,8 @@ const ProjectsList = ({
             </p>
           )}
 
-          {apiProjects != undefined ? (
-            apiProjects.results.map((project: any) => (
+          {sampleProjects != undefined ? (
+            sampleProjects.map((project: any) => (
               <div
                 key={project.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -157,7 +149,6 @@ const ProjectsList = ({
                         <Calendar className="h-3 w-3" />
                         <span>{updateLastTime(project.created_at)}</span>
                       </div>
-                      {/* <span>{project.type === 'PlantingProject' ? project.area_size : project.count}</span> */}
                       <span>
                         {project.type === 'PlantingProject'
                           ? project.total_area_size + ' acres'
@@ -170,14 +161,15 @@ const ProjectsList = ({
                   <Badge className={getStatusColor(project.status)}>
                     {project.status}
                   </Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openProjectDetail(project)}
+                  <Link
+                    href={`/project/${project.slug}`}
+                    className="flex gap-2"
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
+                    <Button size="sm" variant="outline">
+                      <Eye className="h-4 w-4 mr-2" />
+                      <span>View Details</span>
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))
@@ -186,13 +178,6 @@ const ProjectsList = ({
           )}
         </CardContent>
       </Card>
-
-      {/* Project Detail Modal */}
-      <ProjectDetailModal
-        project={selectedProject}
-        isOpen={isModalOpen}
-        onClose={closeProjectDetail}
-      />
     </>
   )
 }

@@ -105,5 +105,76 @@ export type ProjectData = AnimalKeepingProject | PlantingProject
 
 export interface ProjectCreateResponse {}
 
-export interface ProjectResponse {}
+export interface ProjectResponse {
+  id: string
+  name: string
+  created_date: string
+  user: string
+  soil: {
+    type: string
+    nitrogen: number
+    phosphorous: number
+    potassium: number
+    soil_ph: number
+  }
+  location: {
+    city: string
+    country: string
+    coordinate: string
+  }
+  status: string
+  animal_group: {
+    type: 'Group' | 'Individual'
+    id: string
+    group_name: string
+    project: string
+    housing: string
+    animals: {
+      id: string
+      breed?: string
+      name?: string
+      gender?: 'MALE' | 'FEMALE'
+      notes?: string
+      type: string
+      created_at: string
+      group: string
+      health_status: {
+        id: string
+        status: 'HEALTHY' | 'SICK' | 'DEAD' | string
+        created_at: string
+        updated_at: string
+        animal: string
+      }[]
+      starting_number?: number
+      average_weight?: number
+      average_age?: number
+      processed?: {
+        id: string
+        date: string
+        type: 'DEATH' | 'SALE' | string
+        number_of_animal: number
+        animal: string
+      }[]
+      harvests?: {
+        id: string
+        product: string
+        amount: number
+        unit: 'KILOGRAM' | 'LITER' | string
+        harvest_notes: string
+        date: string
+        animal: string
+      }[]
+
+      arrival_date?: string
+      birthday?: string
+      age?: number
+      weight?: number
+      tag?: string
+    }
+    group_created_date: string
+  }[]
+  is_active: boolean
+  created_at: string
+}
+
 export interface ProjectSearchResponse {}
