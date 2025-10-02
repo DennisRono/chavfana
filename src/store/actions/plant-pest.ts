@@ -1,12 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { PlantPestResponse, PlantPestData } from '@/types/plant-farming'
+import type { PlantPest, PlantPestData } from '@/types/plant-farming'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getPlantPestById = createAsyncThunk<
-  PlantPestResponse,
+  PlantPest,
   { speciesId: string; pestId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -39,7 +39,7 @@ export const getPlantPestById = createAsyncThunk<
 )
 
 export const updatePlantPest = createAsyncThunk<
-  PlantPestResponse,
+  PlantPest,
   { speciesId: string; pestId: string; pestData: PlantPestData },
   { rejectValue: ErrorResponse }
 >(
@@ -107,7 +107,7 @@ export const deletePlantPest = createAsyncThunk<
 )
 
 export const getPlantPests = createAsyncThunk<
-  PlantPestResponse[],
+  PlantPest[],
   string,
   { rejectValue: ErrorResponse }
 >('plantPest/getAll', async (speciesId, { getState, rejectWithValue }) => {
@@ -137,7 +137,7 @@ export const getPlantPests = createAsyncThunk<
 })
 
 export const createPlantPest = createAsyncThunk<
-  PlantPestResponse,
+  PlantPest,
   { speciesId: string; pestData: PlantPestData },
   { rejectValue: ErrorResponse }
 >(

@@ -1,12 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AnimalGroupResponse, AnimalGroupData } from '@/types/animal-farming'
+import type { AnimalGroup, AnimalGroupData } from '@/types/animal-farming'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getAnimalGroups = createAsyncThunk<
-  AnimalGroupResponse[],
+  AnimalGroup[],
   string,
   { rejectValue: ErrorResponse }
 >('animalGroup/getAll', async (projectId, { getState, rejectWithValue }) => {
@@ -36,7 +36,7 @@ export const getAnimalGroups = createAsyncThunk<
 })
 
 export const createAnimalGroup = createAsyncThunk<
-  AnimalGroupResponse,
+  AnimalGroup,
   { projectId: string; groupData: AnimalGroupData },
   { rejectValue: ErrorResponse }
 >(
@@ -71,7 +71,7 @@ export const createAnimalGroup = createAsyncThunk<
 )
 
 export const getAnimalGroupById = createAsyncThunk<
-  AnimalGroupResponse,
+  AnimalGroup,
   { projectId: string; groupId: string },
   { rejectValue: ErrorResponse }
 >(

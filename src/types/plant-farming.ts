@@ -42,6 +42,68 @@ export type LandAction =
   | { type: 'patch'; payload: Partial<LandDetails> }
   | { type: 'reset'; payload?: LandDetails }
 
+/** SLICE  TYPES */
+
+export interface PlantingEvent {
+  id: string
+  name: string
+  planting_date: string
+  area_size: number
+  area_size_unit: string
+  end_date?: string
+  notes?: string
+  stage: string
+  type: string
+  species: any[]
+}
+
+export interface PlantDisease {
+  id: string
+  name: string
+  spotted_date: string
+  damage: string
+  species: string
+}
+
+export interface PlantPest {
+  id: string
+  name: string
+  spotted_date: string
+  damage?: string
+  species: string
+}
+
+export interface PlantHarvest {
+  id: string
+  date: string
+  amount: string
+  unit: string
+  quality: string
+  species: string
+}
+
+export interface FertilitySpread {
+  id: string
+  date: string
+  notes: string
+  growth_stage: string
+  method: string
+  amount: number
+  unit: string
+  planting_event: string
+}
+
+export interface PlantState {
+  plantingEvents: PlantingEvent[]
+  currentEvent: PlantingEvent | null
+  diseases: PlantDisease[]
+  pests: PlantPest[]
+  harvests: PlantHarvest[]
+  fertilitySpreads: FertilitySpread[]
+  isLoading: boolean
+  error: string | null
+}
+
 /** PLANT ACTIONS */
 
 export interface PlantDiseaseManagementResponse {}

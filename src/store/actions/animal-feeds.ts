@@ -1,12 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AnimalFeedResponse, AnimalFeedData } from '@/types/animal-farming'
+import type { AnimalFeed, AnimalFeedData } from '@/types/animal-farming'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getAnimalFeeds = createAsyncThunk<
-  AnimalFeedResponse[],
+  AnimalFeed[],
   string,
   { rejectValue: ErrorResponse }
 >('animalFeed/getAll', async (animalId, { getState, rejectWithValue }) => {
@@ -36,7 +36,7 @@ export const getAnimalFeeds = createAsyncThunk<
 })
 
 export const createAnimalFeed = createAsyncThunk<
-  AnimalFeedResponse,
+  AnimalFeed,
   { animalId: string; feedData: AnimalFeedData },
   { rejectValue: ErrorResponse }
 >(

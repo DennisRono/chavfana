@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type {
-  PlantingEventResponse,
+  PlantingEvent,
   PlantingEventData,
 } from '@/types/plant-farming'
 import type { ErrorResponse } from '@/types/responses'
@@ -9,7 +9,7 @@ import type { RootState } from '@/store/store'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const createPlantingEvent = createAsyncThunk<
-  PlantingEventResponse,
+  PlantingEvent,
   { projectId: string; eventData: PlantingEventData },
   { rejectValue: ErrorResponse }
 >(
@@ -44,7 +44,7 @@ export const createPlantingEvent = createAsyncThunk<
 )
 
 export const getPlantingEventById = createAsyncThunk<
-  PlantingEventResponse,
+  PlantingEvent,
   { projectId: string; eventId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -77,7 +77,7 @@ export const getPlantingEventById = createAsyncThunk<
 )
 
 export const updatePlantingEvent = createAsyncThunk<
-  PlantingEventResponse,
+  PlantingEvent,
   { projectId: string; eventId: string; eventData: PlantingEventData },
   { rejectValue: ErrorResponse }
 >(

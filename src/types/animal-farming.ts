@@ -32,17 +32,67 @@ export type AnimalType =
   | 'chicken'
   | 'duck'
 
+/** SLICE TYPES */
+
+
+export interface AnimalGroup {
+  id: string
+  type: "Group" | "Individual"
+  group_name: string
+  housing: string
+  animals: any
+  group_created_date: string
+}
+
+export interface AnimalDisease {
+  id: string
+  name: string
+  date: string
+  animal: string
+  treatments?: any[]
+}
+
+export interface AnimalHarvest {
+  id: string
+  product: string
+  amount: number
+  unit: string
+  date: string
+  animal: string
+}
+
+export interface AnimalProcess {
+  id: string
+  date: string
+  type: string
+  number_of_animal: number
+  animal: string
+}
+
+export interface AnimalFeed {
+  animal: string
+  date: string
+  name: string
+  amount: number
+  unit: string
+}
+
+export interface AnimalState {
+  groups: AnimalGroup[]
+  currentGroup: AnimalGroup | null
+  diseases: AnimalDisease[]
+  harvests: AnimalHarvest[]
+  processes: AnimalProcess[]
+  feeds: AnimalFeed[]
+  isLoading: boolean
+  error: string | null
+}
+
 /** ACTIONS TYPES */
 
-export interface AnimalDiseaseManagementResponse {}
 export interface AnimalDiseaseManagementData {}
-export interface AnimalDiseaseResponse {}
 export interface AnimalDiseaseData {}
-export interface AnimalFeedResponse {}
 export interface AnimalFeedData {}
-export interface AnimalGroupResponse {}
 export interface AnimalGroupData {}
-export interface AnimalHarvestResponse {}
 export interface AnimalHarvestData {}
-export interface AnimalProcessResponse {}
 export interface AnimalProcessData {}

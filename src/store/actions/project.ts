@@ -40,7 +40,7 @@ export const createProject = createAsyncThunk<
 })
 
 export const getAllProjects = createAsyncThunk<
-  ProjectResponse[],
+  { count: number; next: string; previous: string; results: ProjectResponse[] },
   void,
   { rejectValue: ErrorResponse }
 >('project/getAll', async (_, { getState, rejectWithValue }) => {

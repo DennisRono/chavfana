@@ -1,16 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import {
-  AddressCreateResponse,
-  AddressData,
-  AddressResponse,
-} from '@/types/address'
-import { ErrorResponse } from '@/types/responses'
+import { AddressData, AddressResponse } from '@/types/address'
+import { ErrorResponse, PaginatedResponse } from '@/types/responses'
 import { RootState } from '@/store/store'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const createPrimaryAddress = createAsyncThunk<
-  AddressCreateResponse,
+  AddressResponse,
   AddressData,
   { rejectValue: ErrorResponse }
 >(
@@ -42,7 +38,7 @@ export const createPrimaryAddress = createAsyncThunk<
 )
 
 export const createSecondaryAddress = createAsyncThunk<
-  AddressCreateResponse,
+  AddressResponse,
   AddressData,
   { rejectValue: ErrorResponse }
 >(
@@ -101,7 +97,7 @@ export const getAddressById = createAsyncThunk<
 })
 
 export const getAllAddresses = createAsyncThunk<
-  AddressResponse[],
+  PaginatedResponse<AddressResponse>,
   void,
   { rejectValue: ErrorResponse }
 >('address/getAll', async (_, { getState, rejectWithValue }) => {

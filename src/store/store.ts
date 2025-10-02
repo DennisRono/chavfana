@@ -5,6 +5,10 @@ import { authApi } from '@/store/services/auth-api'
 import { persistReducer, persistStore } from 'redux-persist'
 import storage from './useWebStorage'
 import authReducer from '@/store/slices/auth-slice'
+import projectReducer from "@/store/slices/project-slice"
+import animalReducer from "@/store/slices/animal-slice"
+import plantReducer from "@/store/slices/plant-slice"
+import userReducer from "@/store/slices/user-slice"
 
 const persistConfig = {
   key: 'root',
@@ -14,6 +18,10 @@ const persistConfig = {
 
 const allReducers = combineReducers({
   auth: authReducer,
+  project: projectReducer,
+  animal: animalReducer,
+  plant: plantReducer,
+  user: userReducer,
   [authApi.reducerPath]: authApi.reducer,
 })
 

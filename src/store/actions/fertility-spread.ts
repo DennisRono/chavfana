@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type {
-  FertilitySpreadResponse,
+  FertilitySpread,
   FertilitySpreadData,
 } from '@/types/plant-farming'
 import type { ErrorResponse } from '@/types/responses'
@@ -9,7 +9,7 @@ import type { RootState } from '@/store/store'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getFertilitySpreadById = createAsyncThunk<
-  FertilitySpreadResponse,
+  FertilitySpread,
   { plantingEventId: string; spreadId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -42,7 +42,7 @@ export const getFertilitySpreadById = createAsyncThunk<
 )
 
 export const updateFertilitySpread = createAsyncThunk<
-  FertilitySpreadResponse,
+  FertilitySpread,
   {
     plantingEventId: string
     spreadId: string
@@ -117,7 +117,7 @@ export const deleteFertilitySpread = createAsyncThunk<
 )
 
 export const getFertilitySpreads = createAsyncThunk<
-  FertilitySpreadResponse[],
+  FertilitySpread[],
   string,
   { rejectValue: ErrorResponse }
 >(
@@ -150,7 +150,7 @@ export const getFertilitySpreads = createAsyncThunk<
 )
 
 export const createFertilitySpread = createAsyncThunk<
-  FertilitySpreadResponse,
+  FertilitySpread,
   { plantingEventId: string; spreadData: FertilitySpreadData },
   { rejectValue: ErrorResponse }
 >(

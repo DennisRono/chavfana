@@ -177,4 +177,9 @@ export interface ProjectResponse {
   created_at: string
 }
 
-export interface ProjectSearchResponse {}
+export interface ProjectSearchResponse {
+  count: number
+  next: string
+  previous: string
+  results: ProjectResponse[]
+}
