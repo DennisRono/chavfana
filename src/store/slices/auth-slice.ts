@@ -27,16 +27,6 @@ const authSlice = createSlice({
     setAuthState: (state, action: PayloadAction<Partial<AuthState>>) => {
       return { ...state, ...action.payload }
     },
-
-    reduxLogoutUser: () => ({
-      user: null,
-      isAuthenticated: false,
-      access_token: null,
-      refresh_token: null,
-      isLoading: false,
-      error: null,
-      isInitialized: false,
-    }),
   },
   extraReducers: (builder) => {
     builder
@@ -52,6 +42,7 @@ const authSlice = createSlice({
           email: action.payload.email,
           id: action.payload.id,
           role: action.payload.role,
+          full_name: action.payload?.full_name,
         }
         state.access_token = action.payload.access
         state.refresh_token = action.payload.refresh
@@ -91,11 +82,7 @@ const authSlice = createSlice({
   },
 })
 
-export const {
-  resetAuthError,
-  updateUserProfile,
-  setAuthState,
-  reduxLogoutUser,
-} = authSlice.actions
+export const { resetAuthError, updateUserProfile, setAuthState } =
+  authSlice.actions
 
 export default authSlice.reducer

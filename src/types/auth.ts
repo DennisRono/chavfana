@@ -38,6 +38,7 @@ export interface AuthState {
     email: string
     id: string
     role: string
+    full_name: string
   } | null
   access_token: string | null
   refresh_token: string | null
@@ -70,6 +71,7 @@ export interface AuthResponse {
   refresh: string
   id: string
   role: string
+  full_name: string
 }
 
 export interface TokenPayload {

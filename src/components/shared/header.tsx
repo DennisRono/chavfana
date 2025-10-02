@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronDown,
   Sprout,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useAppDispatch } from '@/store/hooks'
+import { logout } from '@/store/actions/auth'
+import { useSelector } from 'react-redux'
+import { selectAuth } from '@/store/selectors/auth'
 
 interface HeaderProps {
   onSearch?: (query: string) => void
@@ -33,6 +38,10 @@ const Header = ({ onSearch }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [notificationCount] = useState(3)
+
+  const { user, isAuthenticated, isLoading, error } = useSelector(selectAuth)
+
+  const dispatch = useAppDispatch()
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
@@ -54,6 +63,10 @@ const Header = ({ onSearch }: HeaderProps) => {
       document.body.style.overflow = 'unset'
     }
   }, [isMobileMenuOpen])
+
+  const handleLogout = async () => {
+    dispatch(logout({}))
+  }
 
   return (
     <>
@@ -174,7 +187,7 @@ const Header = ({ onSearch }: HeaderProps) => {
                       <User className="h-4 w-4 text-primary-foreground" />
                     </div>
                     <div className="hidden lg:block text-left">
-                      <p className="text-sm font-medium">Green Valley Farm</p>
+                      <p className="text-sm font-medium">{user?.full_name||user?.email}</p>
                       <p className="text-xs text-muted-foreground">
                         Premium Account
                       </p>
@@ -183,17 +196,29 @@ const Header = ({ onSearch }: HeaderProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Farm Settings
-                  </DropdownMenuItem>
+                  <Link href="/profile" className="flex gap-2">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-primary/20 w-full">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile Settings
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/farm" className="flex gap-2">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-primary/20 w-full">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Farm Settings
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer hover:bg-primary/20 w-full"
+                    onClick={() => {
+                      handleLogout()
+                    }}
+                  >
+                    {isLoading && (
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    )}
+                    {!isLoading && <LogOut className="mr-2 h-4 w-4" />}
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
