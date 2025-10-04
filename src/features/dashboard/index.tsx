@@ -1,4 +1,4 @@
-"use client"
+'use client'
 import React, { useState } from 'react'
 import {
   Wheat,
@@ -53,18 +53,20 @@ const DashboardView = () => {
         <MetricCard
           title="Total Projects"
           value={projects.total_land_under_cultivation}
-          change="Active farm projects"
-          changeType="neutral"
+          change="+20.1% from last month"
+          changeType="positive"
           icon={Wheat}
           subtitle="Plant & Animal Projects"
+          variant="gradient"
         />
         <MetricCard
           title="Livestock"
           value={projects.total_animals}
           change="Total animals"
-          changeType="neutral"
+          changeType="negative"
           icon={Beef}
           subtitle="All livestock groups"
+          variant="gradient"
         />
         <MetricCard
           title="Water Usage"
@@ -73,6 +75,7 @@ const DashboardView = () => {
           changeType="neutral"
           icon={Droplets}
           subtitle="Resource monitoring"
+          variant="gradient"
         />
         <MetricCard
           title="Revenue"
@@ -81,6 +84,7 @@ const DashboardView = () => {
           changeType="neutral"
           icon={DollarSign}
           subtitle="Farm income"
+          variant="gradient"
         />
       </div>
 

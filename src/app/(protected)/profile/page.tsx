@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { User, MapPin, Phone, Mail } from 'lucide-react'
+import { User, MapPin, Phone, Mail, UserX } from 'lucide-react'
 
 const ProfilePage = () => {
   const dispatch = useAppDispatch()
@@ -66,9 +66,18 @@ const ProfilePage = () => {
 
   if (!userDetails) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center text-muted-foreground">
-          No user data available
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="max-w-md w-full rounded-2xl bg-white shadow-lg dark:bg-neutral-900 p-8 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="rounded-full bg-red-100 dark:bg-red-900/30 p-4">
+              <UserX className="h-10 w-10 text-red-500" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-semibold mb-2">No User Data</h2>
+          <p className="text-muted-foreground mb-6">
+            Looks like we couldn’t find any details for this user. Try
+            refreshing the page or go back to explore again.
+          </p>
         </div>
       </div>
     )

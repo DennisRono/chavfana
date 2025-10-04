@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
 import { usePathname, useRouter } from 'next/navigation'
 import Loader from '@/components/shared/loader'
+import { useAppDispatch } from '@/store/hooks'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -15,15 +16,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   )
   const pathname = usePathname()
   const router = useRouter()
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {}, [])
 
   useEffect(() => {
     if (!isAuthenticated || !user) return
-
-    const publicAuthRoutes = ['/login', '/register', '/forgot-password']
-
-    if (publicAuthRoutes.includes(pathname)) {
-      router.push('/analytics')
-    }
   }, [isAuthenticated, user, pathname, router, isLoading])
 
   if (isLoading) {
