@@ -6,16 +6,15 @@ import AuthProvider from '@/contexts/auth-provider'
 import Loader from '@/components/shared/loader'
 import Header from '@/components/shared/header'
 import Footer from '@/components/shared/footer'
+import { useSelector } from 'react-redux'
+import { selectAuth } from '@/store/selectors/auth'
 
 export default function ProtectedLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { isAuthenticated, isLoading } = {
-    isAuthenticated: true,
-    isLoading: false,
-  }
+  const { isAuthenticated, isLoading } = useSelector(selectAuth)
   const router = useRouter()
 
   useEffect(() => {
