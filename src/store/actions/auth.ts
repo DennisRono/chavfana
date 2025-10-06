@@ -12,7 +12,6 @@ export const login = createAsyncThunk<
   try {
     const response = await fetch(`${BASE_URL}/api/user/login/`, {
       method: 'POST',
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

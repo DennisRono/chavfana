@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { login, register } from '@/store/actions/auth'
 import { LoginCredentials, RegisterData } from '@/types/auth'
+import { useRouter } from 'next/navigation'
 
 const LoginView = () => {
   const loading = false
@@ -19,6 +20,8 @@ const LoginView = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone_number'>(
     'email'
   )
+  const router = useRouter()
+  const [loginError, setLoginError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: '',
     phone_number: '',
@@ -34,6 +37,8 @@ const LoginView = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setLoginError(null)
+
     dispatch(
       login({
         ...(formData.email !== '' && loginMethod === 'email'
@@ -45,8 +50,13 @@ const LoginView = () => {
         password: formData.password,
       } as LoginCredentials)
     )
-      .then(() => {})
-      .catch(() => {})
+      .unwrap()
+      .then(() => {
+        router.push('/dashboard')
+      })
+      .catch((error: any) => {
+        setLoginError(error.message || 'Login failed. Please try again.')
+      })
       .finally(() => {
         setIsLoading(false)
       })

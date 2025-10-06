@@ -97,13 +97,13 @@ const ProfilePage = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">First Name</p>
-              <p className="font-medium">{userDetails.first_name}</p>
+              <p className="text-sm text-muted-foreground">User Name</p>
+              <p className="font-medium">{userDetails.full_name}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm text-muted-foreground">Last Name</p>
               <p className="font-medium">{userDetails.last_name}</p>
-            </div>
+            </div> */}
           </div>
 
           <Separator />
@@ -121,7 +121,7 @@ const ProfilePage = () => {
             <div>
               <p className="text-sm text-muted-foreground">Phone Number</p>
               <p className="font-medium">
-                {userDetails.phone_number.phone_number}
+                {userDetails.phone_number}
               </p>
             </div>
           </div>
