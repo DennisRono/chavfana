@@ -1,6 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type {
-  ProjectCreateResponse,
   ProjectData,
   ProjectResponse,
   ProjectSearchResponse,
@@ -11,7 +10,7 @@ import type { RootState } from '@/store/store'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const createProject = createAsyncThunk<
-  ProjectCreateResponse,
+  ProjectResponse,
   ProjectData,
   { rejectValue: ErrorResponse }
 >('project/create', async (projectData, { getState, rejectWithValue }) => {

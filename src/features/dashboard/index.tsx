@@ -14,21 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ProjectsList from '@/components/shared/project-list'
 import { useRouter } from 'next/navigation'
+import { useAppSelector } from '@/store/hooks'
+import { selectProjects } from '@/store/selectors/project'
 
 const DashboardView = () => {
-  const { projects, loading, error } = {
-    projects: {
-      count: 0,
-      next: 0,
-      previous: 0,
-      results: [],
-      active_projects: 0,
-      total_animals: 200,
-      total_land_under_cultivation: 20,
-    },
-    loading: false,
-    error: {},
-  }
+  const { projects, isLoading, error, searchResults } = useAppSelector(selectProjects)
   const [searchQuery, setSearchQuery] = useState('')
 
   const [metrics, setMetrics] = useState({
@@ -136,7 +126,7 @@ const DashboardView = () => {
         <ProjectsList
           searchQuery={searchQuery}
           apiProjects={projects}
-          isLoading={loading}
+          isLoading={isLoading}
           error={error}
         />
       </div>

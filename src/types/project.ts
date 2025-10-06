@@ -103,8 +103,6 @@ export interface PlantingProject extends BaseProject {
 
 export type ProjectData = AnimalKeepingProject | PlantingProject
 
-export interface ProjectCreateResponse {}
-
 export interface ProjectResponse {
   id: string
   name: string

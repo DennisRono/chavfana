@@ -18,7 +18,7 @@ const persistConfig = {
 
 const allReducers = combineReducers({
   auth: authReducer,
-  project: projectReducer,
+  projects: projectReducer,
   animal: animalReducer,
   plant: plantReducer,
   user: userReducer,

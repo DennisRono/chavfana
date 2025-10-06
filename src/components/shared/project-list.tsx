@@ -3,23 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Calendar, MapPin, Wheat, Beef, Plus, Eye } from 'lucide-react'
-import { useState } from 'react'
+import { Search, Calendar, MapPin, Wheat, Beef, Eye } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { updateLastTime } from '@/utils/functions'
 import Link from 'next/link'
+import { useAppDispatch } from '@/store/hooks'
+import { getAllProjects, searchProjects } from '@/store/actions/project'
+import { debounce } from 'lodash'
+import { ProjectResponse } from '@/types/project'
+
 interface ProjectsListProps {
   searchQuery?: string
   apiProjects: {
-    active_projects: number
     count: number
-    next: number
-    previous: number
-    results: any[]
+    next: string | null
+    previous: string | null
+    results: ProjectResponse[]
+    total_active_projects: number
     total_animals: number
     total_land_under_cultivation: number
+    last_month_total_animal: number
+    last_month_total_planted_area: number
+    last_month_created_project: number
+    current_month_total_animal: number
+    current_month_total_planted_area: number
+    current_month_created_project: number
   }
   isLoading: boolean
-  error: {}
+  error: any
 }
 
 const ProjectsList = ({
@@ -29,60 +40,37 @@ const ProjectsList = ({
   error,
 }: ProjectsListProps) => {
   const [searchTerm, setSearchTerm] = useState('')
+  const dispatch = useAppDispatch()
 
-  const sampleProjects = [
-    {
-      id: 1,
-      name: 'Wheat Field A',
-      slug: 'wheat-field-a',
-      type: 'plant',
-      location: 'North Field',
-      status: 'Active',
-      lastUpdated: '2 days ago',
-      area: '25 acres',
-    },
-    {
-      id: 2,
-      name: 'Dairy Cattle Group',
-      slug: 'dairy-cattle-group',
-      type: 'animal',
-      location: 'Barn 1',
-      status: 'Active',
-      lastUpdated: '1 day ago',
-      count: '45 cattle',
-    },
-    {
-      id: 3,
-      name: 'Corn Plantation B',
-      slug: 'corn-plantation-b',
-      type: 'plant',
-      location: 'South Field',
-      status: 'Planning',
-      lastUpdated: '5 days ago',
-      area: '30 acres',
-    },
-    {
-      id: 4,
-      name: 'Poultry Farm',
-      slug: 'poultry-farm',
-      type: 'animal',
-      location: 'Coop 2',
-      status: 'Active',
-      lastUpdated: '3 hours ago',
-      count: '200 chickens',
-    },
-  ]
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      dispatch(searchProjects(term))
+    }, 500),
+    [dispatch]
+  )
 
-  const projects = apiProjects || sampleProjects
+  useEffect(() => {
+    if (searchTerm?.trim()) {
+      debouncedSearch(searchTerm)
+    }
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [searchTerm, debouncedSearch])
+
+  useEffect(() => {
+    dispatch(getAllProjects())
+  }, [dispatch])
 
   const activeSearchTerm = searchQuery || searchTerm
-  const filteredProjects = apiProjects.results.filter(
-    (project: any) =>
-      project.name.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
-      project.location.city
-        .toLowerCase()
-        .includes(activeSearchTerm.toLowerCase())
-  )
+  const filteredProjects =
+    apiProjects?.results?.filter(
+      (project: any) =>
+        project.name.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+        project.location?.city
+          ?.toLowerCase()
+          .includes(activeSearchTerm.toLowerCase())
+    ) || []
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -98,87 +86,80 @@ const ProjectsList = ({
   }
 
   return (
-    <>
-      <Card className="p-4">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <CardTitle>Farm Projects</CardTitle>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search projects..."
-              value={searchQuery || searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading && (
-            <p className="text-muted-foreground">Loading projects...</p>
-          )}
-          {error && (
-            <p className="text-red-500">
-              Failed to load projects from API. Showing sample data.
-            </p>
-          )}
+    <Card className="p-4">
+      <CardHeader>
+        <div className="flex items-center justify-between mb-4">
+          <CardTitle>Farm Projects</CardTitle>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search projects..."
+            value={searchQuery || searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLoading && (
+          <p className="text-muted-foreground">Loading projects...</p>
+        )}
+        {error && (
+          <p className="text-red-500">Failed to load projects from API.</p>
+        )}
 
-          {sampleProjects != undefined ? (
-            sampleProjects.map((project: any) => (
-              <div
-                key={project.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-muted rounded-lg">
-                    {project.type === 'PlantingProject' ? (
-                      <Wheat className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Beef className="h-5 w-5 text-blue-600" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{project.name}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{project.location.city}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{updateLastTime(project.created_at)}</span>
-                      </div>
-                      <span>
-                        {project.type === 'PlantingProject'
-                          ? project.total_area_size + ' acres'
-                          : project.total_project_animal + ' animals'}{' '}
-                      </span>
-                    </div>
-                  </div>
+        {!isLoading && filteredProjects.length > 0 ? (
+          filteredProjects.map((project: any) => (
+            <div
+              key={project.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-muted rounded-lg">
+                  {project.type === 'PlantingProject' ? (
+                    <Wheat className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <Beef className="h-5 w-5 text-blue-600" />
+                  )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                  <Link
-                    href={`/project/${project.slug}`}
-                    className="flex gap-2"
-                  >
-                    <Button size="sm" variant="outline">
-                      <Eye className="h-4 w-4 mr-2" />
-                      <span>View Details</span>
-                    </Button>
-                  </Link>
+                <div>
+                  <h3 className="font-medium">{project.name}</h3>
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-3 w-3" />
+                      <span>{project.location?.city}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{updateLastTime(project.created_at)}</span>
+                    </div>
+                    <span>
+                      {project.type === 'PlantingProject'
+                        ? project.total_area_size + ' acres'
+                        : project.total_project_animal + ' animals'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ))
-          ) : (
-            <p>You have no ongoing projects</p>
-          )}
-        </CardContent>
-      </Card>
-    </>
+              <div className="flex items-center space-x-2">
+                <Badge className={getStatusColor(project.status)}>
+                  {project.status}
+                </Badge>
+                <Link href={`/project/${project.slug}`} className="flex gap-2">
+                  <Button size="sm" variant="outline">
+                    <Eye className="h-4 w-4 mr-2" />
+                    <span>View Details</span>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ))
+        ) : !isLoading ? (
+          <p className="text-muted-foreground">You have no ongoing projects</p>
+        ) : null}
+      </CardContent>
+    </Card>
   )
 }
 
