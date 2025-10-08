@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/projects/',
+        destination: 'https://chavfana.com/api/projects/',
+      },
+    ]
+  },
   devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,

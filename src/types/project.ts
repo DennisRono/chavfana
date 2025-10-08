@@ -8,6 +8,7 @@ export interface Location {
 }
 
 export interface Soil {
+  type?: string
   phosphorous?: number
   potassium?: number
   nitrogen?: number
@@ -99,6 +100,14 @@ export interface AnimalKeepingProject extends BaseProject {
 export interface PlantingProject extends BaseProject {
   type: 'PlantingProject'
   planting_event: PlantingEvent
+  is_active: boolean
+  weather: {
+    temperature: number
+    humidity: number
+    precipitation: number
+    wind_speed: number
+    solar_radiation: number
+  }
 }
 
 export type ProjectData = AnimalKeepingProject | PlantingProject

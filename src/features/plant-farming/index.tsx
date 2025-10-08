@@ -19,7 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, MapPin, Wheat, Navigation, CheckCircle } from 'lucide-react'
+import {
+  Plus,
+  MapPin,
+  Wheat,
+  Navigation,
+  CheckCircle,
+  Droplets,
+  CloudRain,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { SupplementRow } from './components/supplement-row'
 import { UpdatableFieldList } from './components/updatable-field-list'
@@ -35,7 +43,7 @@ import type {
 } from '@/types/plant-farming'
 import { useUserLocation } from '@/hooks/use-user-location'
 import { useAppDispatch } from '@/store/hooks'
-import { createProject } from '@/store/actions/create-project'
+import { createProject } from '@/store/actions/project'
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
@@ -52,6 +60,7 @@ const PlantFarmingView = () => {
     created_date: new Date().toISOString().split('T')[0],
     type: 'PlantingProject',
     status: 'Planning',
+    is_active: true,
     location: {
       country: '',
       city: '',
@@ -59,6 +68,20 @@ const PlantFarmingView = () => {
         latitude: 0,
         longitude: 0,
       },
+    },
+    soil: {
+      type: 'Sandy',
+      nitrogen: 0,
+      phosphorous: 0,
+      potassium: 0,
+      soil_ph: 0,
+    },
+    weather: {
+      temperature: 0,
+      humidity: 0,
+      precipitation: 0,
+      wind_speed: 0,
+      solar_radiation: 0,
     },
     planting_event: {
       planting_date: '',
@@ -163,10 +186,25 @@ const PlantFarmingView = () => {
       created_date: new Date().toISOString().split('T')[0],
       type: 'PlantingProject',
       status: 'Planning',
+      is_active: true,
       location: {
         country: '',
         city: '',
         coordinate: { latitude: 0, longitude: 0 },
+      },
+      soil: {
+        type: 'Sandy',
+        nitrogen: 0,
+        phosphorous: 0,
+        potassium: 0,
+        soil_ph: 0,
+      },
+      weather: {
+        temperature: 0,
+        humidity: 0,
+        precipitation: 0,
+        wind_speed: 0,
+        solar_radiation: 0,
       },
       planting_event: {
         planting_date: '',
@@ -202,6 +240,7 @@ const PlantFarmingView = () => {
         projectData.created_date || new Date().toISOString().split('T')[0],
       type: 'PlantingProject',
       status: projectData.status || 'Planning',
+      is_active: projectData.is_active ?? true,
       location: {
         country: projectData.location?.country ?? '',
         city: projectData.location?.city ?? '',
@@ -209,6 +248,20 @@ const PlantFarmingView = () => {
           latitude: projectData.location?.coordinate?.latitude ?? 0,
           longitude: projectData.location?.coordinate?.longitude ?? 0,
         },
+      },
+      soil: {
+        type: projectData.soil?.type ?? 'Sandy',
+        nitrogen: projectData.soil?.nitrogen ?? 0,
+        phosphorous: projectData.soil?.phosphorous ?? 0,
+        potassium: projectData.soil?.potassium ?? 0,
+        soil_ph: projectData.soil?.soil_ph ?? 0,
+      },
+      weather: {
+        temperature: projectData.weather?.temperature ?? 0,
+        humidity: projectData.weather?.humidity ?? 0,
+        precipitation: projectData.weather?.precipitation ?? 0,
+        wind_speed: projectData.weather?.wind_speed ?? 0,
+        solar_radiation: projectData.weather?.solar_radiation ?? 0,
       },
       planting_event: {
         planting_date:
@@ -556,6 +609,273 @@ const PlantFarmingView = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Add Supplement
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-amber-600 to-yellow-500 text-white rounded-t-lg py-2">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Droplets className="h-6 w-6" />
+                Soil Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 p-6">
+              <div className="space-y-2">
+                <Label htmlFor="soilType" className="text-sm font-semibold">
+                  Soil Type
+                </Label>
+                <Select
+                  value={projectData.soil?.type || 'Sandy'}
+                  onValueChange={(value) =>
+                    setProjectData((prev) => ({
+                      ...prev,
+                      soil: {
+                        ...prev.soil,
+                        type: value,
+                      },
+                    }))
+                  }
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sandy">Sandy</SelectItem>
+                    <SelectItem value="Clay">Clay</SelectItem>
+                    <SelectItem value="Loamy">Loamy</SelectItem>
+                    <SelectItem value="Silty">Silty</SelectItem>
+                    <SelectItem value="Peaty">Peaty</SelectItem>
+                    <SelectItem value="Chalky">Chalky</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nitrogen" className="text-sm font-semibold">
+                    Nitrogen (N)
+                  </Label>
+                  <Input
+                    id="nitrogen"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.soil?.nitrogen || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        soil: {
+                          ...prev.soil,
+                          nitrogen: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="phosphorous"
+                    className="text-sm font-semibold"
+                  >
+                    Phosphorous (P)
+                  </Label>
+                  <Input
+                    id="phosphorous"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.soil?.phosphorous || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        soil: {
+                          ...prev.soil,
+                          phosphorous: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="potassium" className="text-sm font-semibold">
+                    Potassium (K)
+                  </Label>
+                  <Input
+                    id="potassium"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.soil?.potassium || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        soil: {
+                          ...prev.soil,
+                          potassium: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="soilPh" className="text-sm font-semibold">
+                    Soil pH
+                  </Label>
+                  <Input
+                    id="soilPh"
+                    type="number"
+                    step="0.1"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.soil?.soil_ph || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        soil: {
+                          ...prev.soil,
+                          soil_ph: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-t-lg py-2">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <CloudRain className="h-6 w-6" />
+                Weather Conditions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 p-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="temperature"
+                    className="text-sm font-semibold"
+                  >
+                    Temperature (°C)
+                  </Label>
+                  <Input
+                    id="temperature"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.weather?.temperature || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        weather: {
+                          ...prev.weather,
+                          temperature: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="humidity" className="text-sm font-semibold">
+                    Humidity (%)
+                  </Label>
+                  <Input
+                    id="humidity"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.weather?.humidity || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        weather: {
+                          ...prev.weather,
+                          humidity: Number.parseInt(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="precipitation"
+                    className="text-sm font-semibold"
+                  >
+                    Precipitation (mm)
+                  </Label>
+                  <Input
+                    id="precipitation"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.weather?.precipitation || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        weather: {
+                          ...prev.weather,
+                          precipitation: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="windSpeed" className="text-sm font-semibold">
+                    Wind Speed (km/h)
+                  </Label>
+                  <Input
+                    id="windSpeed"
+                    type="number"
+                    placeholder="0"
+                    className="h-11"
+                    value={projectData.weather?.wind_speed || ''}
+                    onChange={(e) =>
+                      setProjectData((prev) => ({
+                        ...prev,
+                        weather: {
+                          ...prev.weather,
+                          wind_speed: Number.parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="solarRadiation"
+                  className="text-sm font-semibold"
+                >
+                  Solar Radiation (W/m²)
+                </Label>
+                <Input
+                  id="solarRadiation"
+                  type="number"
+                  placeholder="0"
+                  className="h-11"
+                  value={projectData.weather?.solar_radiation || ''}
+                  onChange={(e) =>
+                    setProjectData((prev) => ({
+                      ...prev,
+                      weather: {
+                        ...prev.weather,
+                        solar_radiation: Number.parseFloat(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
