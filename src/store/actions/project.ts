@@ -22,7 +22,7 @@ export const createProject = createAsyncThunk<
         'Content-Type': 'application/json',
         Authorization: `Bearer ${state?.auth?.access_token}`,
       },
-      body: JSON.stringify(projectData),
+      body: JSON.stringify({...projectData, user: state?.auth?.user?.id}),
     })
 
     if (!response.ok) {

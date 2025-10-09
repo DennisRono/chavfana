@@ -40,9 +40,9 @@ const authSlice = createSlice({
         state.user = {
           phone_number: action.payload.phone_number,
           email: action.payload.email,
-          id: action.payload.id,
-          role: action.payload.role,
-          full_name: action.payload?.full_name,
+          id: action.payload?.user?.id,
+          role: action.payload?.user?.role,
+          full_name: action.payload?.user?.first_name + " " + action.payload?.user?.last_name,
         }
         state.access_token = action.payload.access
         state.refresh_token = action.payload.refresh

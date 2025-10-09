@@ -392,7 +392,13 @@ const PlantFarmingView = () => {
                         className="w-full justify-between h-11 bg-transparent"
                       >
                         {projectData?.location?.country
-                          ? `${projectData?.location?.country} (${projectData?.location?.country})`
+                          ? `${
+                              africanCountries.find(
+                                (country) =>
+                                  country.code ===
+                                  projectData?.location?.country
+                              )?.name
+                            } (${projectData?.location?.country})`
                           : 'Select country...'}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>

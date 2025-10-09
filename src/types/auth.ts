@@ -69,9 +69,12 @@ export interface AuthResponse {
   email: string
   access: string
   refresh: string
-  id: string
-  role: string
-  full_name: string
+  user: {
+    id: string
+    role: string
+    first_name: string
+    last_name: string
+  }
 }
 
 export interface TokenPayload {
