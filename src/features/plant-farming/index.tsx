@@ -20,6 +20,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
   Plus,
   MapPin,
   Wheat,
@@ -27,6 +40,8 @@ import {
   CheckCircle,
   Droplets,
   CloudRain,
+  ChevronsUpDown,
+  Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { SupplementRow } from './components/supplement-row'
@@ -44,6 +59,8 @@ import type {
 import { useUserLocation } from '@/hooks/use-user-location'
 import { useAppDispatch } from '@/store/hooks'
 import { createProject } from '@/store/actions/project'
+import { cn } from '@/lib/utils'
+import africanCountries from '@/data/countries.json'
 
 type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
@@ -55,6 +72,9 @@ const PlantFarmingView = () => {
   const { coordinates, error, permissionState, isLoading, requestLocation } =
     useUserLocation()
 
+  const [countryOpen, setCountryOpen] = useState(false)
+  const [cityOpen, setCityOpen] = useState(false)
+
   const [projectData, setProjectData] = useState<DeepPartial<PlantingProject>>({
     name: '',
     created_date: new Date().toISOString().split('T')[0],
@@ -62,7 +82,7 @@ const PlantFarmingView = () => {
     status: 'Planning',
     is_active: true,
     location: {
-      country: '',
+      country: 'KE',
       city: '',
       coordinate: {
         latitude: 0,
@@ -70,7 +90,7 @@ const PlantFarmingView = () => {
       },
     },
     soil: {
-      type: 'Sandy',
+      type: 'Loam',
       nitrogen: 0,
       phosphorous: 0,
       potassium: 0,
@@ -360,55 +380,133 @@ const PlantFarmingView = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city" className="text-sm font-semibold">
-                    City
-                  </Label>
-                  <Input
-                    id="city"
-                    placeholder="e.g., Springfield"
-                    className="h-11"
-                    value={projectData.location?.city || ''}
-                    onChange={(e) =>
-                      setProjectData((prev) => ({
-                        ...prev,
-                        location: {
-                          ...prev.location,
-                          city: e.target.value,
-                          country: prev.location?.country || '',
-                          coordinate: prev.location?.coordinate || {
-                            latitude: 0,
-                            longitude: 0,
-                          },
-                        },
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="country" className="text-sm font-semibold">
                     Country
                   </Label>
-                  <Input
-                    id="country"
-                    placeholder="e.g., United States"
-                    className="h-11"
-                    value={projectData.location?.country || ''}
-                    onChange={(e) =>
-                      setProjectData((prev) => ({
-                        ...prev,
-                        location: {
-                          ...prev.location,
-                          country: e.target.value,
-                          city: prev.location?.city || '',
-                          coordinate: prev.location?.coordinate || {
-                            latitude: 0,
-                            longitude: 0,
-                          },
-                        },
-                      }))
-                    }
-                  />
+                  <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={countryOpen}
+                        className="w-full justify-between h-11 bg-transparent"
+                      >
+                        {projectData?.location?.country
+                          ? `${projectData?.location?.country} (${projectData?.location?.country})`
+                          : 'Select country...'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search country..." />
+                        <CommandList>
+                          <CommandEmpty>No country found.</CommandEmpty>
+                          <CommandGroup>
+                            {africanCountries.map((country) => (
+                              <CommandItem
+                                key={country.code}
+                                value={`${country.name} ${country.code}`}
+                                onSelect={() => {
+                                  setProjectData((prev) => ({
+                                    ...prev,
+                                    location: {
+                                      ...prev.location,
+                                      country: country.code,
+                                      city: prev.location?.city || '',
+                                      coordinate: prev.location?.coordinate || {
+                                        latitude: 0,
+                                        longitude: 0,
+                                      },
+                                    },
+                                  }))
+
+                                  setCountryOpen(false)
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    'mr-2 h-4 w-4',
+                                    projectData?.location?.country ===
+                                      country.code
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                                  )}
+                                />
+                                {country.name} ({country.code})
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city" className="text-sm font-semibold">
+                    City
+                  </Label>
+                  <Popover open={cityOpen} onOpenChange={setCityOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={cityOpen}
+                        className="w-full justify-between h-11 bg-transparent"
+                        disabled={!projectData?.location?.country}
+                      >
+                        {projectData.location?.city || 'Select city...'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search city..." />
+                        <CommandList>
+                          <CommandEmpty>No city found.</CommandEmpty>
+                          <CommandGroup>
+                            {africanCountries
+                              .find(
+                                (country) =>
+                                  country.code === projectData.location?.country
+                              )
+                              ?.cities.map((city) => (
+                                <CommandItem
+                                  key={city}
+                                  value={city}
+                                  onSelect={(e) =>
+                                    setProjectData((prev) => ({
+                                      ...prev,
+                                      location: {
+                                        ...prev.location,
+                                        city: city,
+                                        country: prev.location?.country || '',
+                                        coordinate: prev.location
+                                          ?.coordinate || {
+                                          latitude: 0,
+                                          longitude: 0,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      projectData.location?.city === city
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                  {city}
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
@@ -627,7 +725,7 @@ const PlantFarmingView = () => {
                   Soil Type
                 </Label>
                 <Select
-                  value={projectData.soil?.type || 'Sandy'}
+                  value={projectData.soil?.type || 'Loam'}
                   onValueChange={(value) =>
                     setProjectData((prev) => ({
                       ...prev,
@@ -644,7 +742,7 @@ const PlantFarmingView = () => {
                   <SelectContent>
                     <SelectItem value="Sandy">Sandy</SelectItem>
                     <SelectItem value="Clay">Clay</SelectItem>
-                    <SelectItem value="Loamy">Loamy</SelectItem>
+                    <SelectItem value="Loam">Loam</SelectItem>
                     <SelectItem value="Silty">Silty</SelectItem>
                     <SelectItem value="Peaty">Peaty</SelectItem>
                     <SelectItem value="Chalky">Chalky</SelectItem>

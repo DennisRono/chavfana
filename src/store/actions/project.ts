@@ -94,13 +94,15 @@ export const getProjectById = createAsyncThunk<
 
 export const searchProjects = createAsyncThunk<
   ProjectSearchResponse,
-  string,
+  { search: string; page: number },
   { rejectValue: ErrorResponse }
 >('project/search', async (query, { getState, rejectWithValue }) => {
   try {
     const state = getState() as RootState
     const response = await fetch(
-      `${BASE_URL}/api/projects/search/?q=${encodeURIComponent(query)}`,
+      `${BASE_URL}/api/projects/search/?search=${encodeURIComponent(
+        query.search
+      )}&page=${encodeURIComponent(query.page)}`,
       {
         method: 'GET',
         headers: {

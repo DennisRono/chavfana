@@ -1,7 +1,7 @@
 'use client'
-import type { ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Provider } from 'react-redux'
-import { store, persistor } from '@/store/store'
+import { store, persistor, RootState } from '@/store/store'
 import { PersistGate } from 'redux-persist/integration/react'
 import { ProgressProvider } from '@bprogress/next/app'
 

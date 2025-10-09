@@ -44,7 +44,7 @@ const ProjectsList = ({
 
   const debouncedSearch = useCallback(
     debounce((term: string) => {
-      dispatch(searchProjects(term))
+      dispatch(searchProjects({search: term, page: 1}))
     }, 500),
     [dispatch]
   )

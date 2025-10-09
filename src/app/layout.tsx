@@ -3,6 +3,7 @@ import '@/styles/globals.css'
 import companyInfo from '@/config/app_info.json'
 import Script from 'next/script'
 import ReduxProvider from '@/contexts/redux-provider'
+import PublicProvider from '@/contexts/public-provider'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -186,7 +187,9 @@ export default function RootLayout({
             `,
           }}
         />
-        <ReduxProvider>{children}</ReduxProvider>
+        <ReduxProvider>
+          <PublicProvider>{children}</PublicProvider>
+        </ReduxProvider>
 
         <div className="sr-only">
           <a href="/accessibility">Accessibility Statement</a>
