@@ -24,8 +24,10 @@ import { GroupAnimalForm } from './components/group-animal-form'
 import { toast } from 'sonner'
 import { createProject } from '@/store/actions/project'
 import { useAppDispatch } from '@/store/hooks'
+import { useEffect, useState } from 'react'
 
 export default function AnimalFarmingForm() {
+  const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
   const dispatch = useAppDispatch()
   const form = useForm<AnimalProjectForm>({
     resolver: zodResolver(animalProjectSchema),
@@ -65,8 +67,8 @@ export default function AnimalFarmingForm() {
     toast.success('Animal project created successfully!')
   }
 
-  const handleTypeChange = (type: 'Individual' | 'Group') => {
-    if (type === 'Individual') {
+  useEffect(() => {
+    if (formType === 'Individual') {
       form.setValue('animal_group', {
         type: 'Individual',
         group_name: form.watch('animal_group.group_name') || '',
@@ -109,7 +111,7 @@ export default function AnimalFarmingForm() {
         },
       })
     }
-  }
+  }, [formType])
 
   return (
     <div className="min-h-screen">
@@ -278,10 +280,11 @@ export default function AnimalFarmingForm() {
           </Card>
 
           <Tabs
-            value={form.watch('animal_group.type')}
-            onValueChange={(value) =>
-              handleTypeChange(value as 'Individual' | 'Group')
-            }
+            value={formType}
+            onValueChange={(value) => {
+              setFormType(value as 'Individual' | 'Group')
+              // handleTypeChange(value as 'Individual' | 'Group')
+            }}
             className="space-y-6"
           >
             <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/80 backdrop-blur-sm border shadow-lg">
