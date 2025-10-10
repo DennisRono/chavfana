@@ -1,3 +1,5 @@
+import { AnimalProjectForm } from "@/schemas/animal-farming"
+
 export interface Location {
   country: string
   city: string
@@ -110,7 +112,7 @@ export interface PlantingProject extends BaseProject {
   }
 }
 
-export type ProjectData = AnimalKeepingProject | PlantingProject
+export type ProjectData = AnimalKeepingProject | PlantingProject | AnimalProjectForm
 
 export interface ProjectResponse {
   id: string

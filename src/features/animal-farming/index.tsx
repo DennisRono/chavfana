@@ -1,11 +1,11 @@
 'use client'
-import { useState, useCallback, useEffect } from 'react'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -13,168 +13,103 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Beef, Users } from 'lucide-react'
 import {
-  Plus,
-  Beef,
-  Users,
-  MapPin,
-  Activity,
-  DollarSign,
-  Heart,
-  Loader2,
-  CheckCircle,
-} from 'lucide-react'
-import { AnimalRecordRow } from './components/animal-record-row'
-import { GroupStatisticsForm } from './components/group-statistics-form'
+  animalProjectSchema,
+  type AnimalProjectForm,
+} from '@/schemas/animal-farming'
+import { IndividualAnimalRow } from './components/individual-animal-row'
+import { GroupAnimalForm } from './components/group-animal-form'
 import { toast } from 'sonner'
-import type {
-  AnimalData,
-  IndividualRecord,
-  GroupData,
-  FarmingType,
-} from '@/types/animal-farming'
-import { useAppDispatch } from '@/store/hooks'
 import { createProject } from '@/store/actions/project'
-import type { AnimalKeepingProject } from '@/types/project'
-import { useUserLocation } from '@/hooks/use-user-location'
+import { useAppDispatch } from '@/store/hooks'
 
-const AnimalFarmingView = () => {
-  const { coordinates, error, permissionState, isLoading, requestLocation } =
-    useUserLocation()
-  const [farmingType, setFarmingType] = useState<FarmingType>('individual')
-  const [animalData, setAnimalData] = useState<AnimalData>({
-    projectName: '',
-    animalType: '',
-    breed: '',
-    location: '',
-    startDate: '',
-  })
-
-  const [manualCoordinates, setManualCoordinates] = useState({
-    latitude: '',
-    longitude: '',
-  })
-
-  const [individualRecords, setIndividualRecords] = useState<
-    IndividualRecord[]
-  >([{ id: 1, tagId: '', age: '', weight: '', healthStatus: '' }])
-
-  const [groupData, setGroupData] = useState<GroupData>({
-    startNumber: '',
-    currentNumber: '',
-    averageAge: '',
-    averageWeight: '',
-  })
-
+export default function AnimalFarmingForm() {
   const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    if (permissionState === 'granted' && coordinates) {
-      setManualCoordinates({
-        latitude: coordinates.latitude.toString(),
-        longitude: coordinates.longitude.toString(),
-      })
-    }
-  }, [coordinates, permissionState])
-
-  const handleLocationRequest = async () => {
-    try {
-      await requestLocation()
-      if (coordinates) {
-        toast.success('Location detected successfully!')
-      }
-    } catch (err) {
-      toast.error('Failed to get location. Please enter coordinates manually.')
-    }
-  }
-
-  const addIndividualRecord = useCallback(() => {
-    setIndividualRecords((prev) => [
-      ...prev,
-      { id: Date.now(), tagId: '', age: '', weight: '', healthStatus: '' },
-    ])
-  }, [])
-
-  const removeIndividualRecord = useCallback((id: number) => {
-    setIndividualRecords((prev) => prev.filter((r) => r.id !== id))
-  }, [])
-
-  const updateIndividualRecord = useCallback(
-    (id: number, field: keyof IndividualRecord, value: string) => {
-      setIndividualRecords((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
-      )
-    },
-    []
-  )
-
-  const handleCreateProject = useCallback(() => {
-    const baseLocation = {
-      country: '',
-      city: '',
-      coordinate: {
-        latitude: Number(manualCoordinates.latitude) || 0,
-        longitude: Number(manualCoordinates.longitude) || 0,
-      },
-    }
-
-    const baseGroup = {
-      group_name: animalData.projectName || 'Default Group',
-      housing: 'BARN' as const,
-      group_created_date: animalData.startDate || new Date().toISOString(),
-    }
-
-    const completeProjectData: AnimalKeepingProject = {
-      name: animalData.projectName || 'Untitled Animal Project',
-      created_date: new Date().toISOString(),
+  const form = useForm<AnimalProjectForm>({
+    resolver: zodResolver(animalProjectSchema),
+    defaultValues: {
+      name: '',
+      created_date: new Date().toISOString().split('T')[0],
       type: 'AnimalKeepingProject',
       status: 'Active',
-      location: baseLocation,
-      animal_group:
-        farmingType === 'individual'
-          ? {
-              ...baseGroup,
-              type: 'Individual',
-              animals: {
-                tag: individualRecords[0]?.tagId || '',
-                breed: animalData.breed || '',
-                name: '',
-                arrival_date: animalData.startDate || new Date().toISOString(),
-                birthday: '',
-                type: animalData.animalType || '',
-                gender: 'MALE',
-                weight: Number(individualRecords[0]?.weight) || 0,
-                age: individualRecords[0]?.age || 0,
-                notes: individualRecords[0]?.healthStatus || '',
-              },
-            }
-          : {
-              ...baseGroup,
-              type: 'Group',
-              animals: {
-                breed: animalData.breed || '',
-                name: '',
-                arrival_date: animalData.startDate || new Date().toISOString(),
-                birthday: '',
-                type: animalData.animalType || '',
-                gender: 'MALE',
-                average_weight: Number(groupData.averageWeight) || 0,
-                average_age: Number(groupData.averageAge) || 0,
-                starting_number: Number(groupData.startNumber) || 0,
-                notes: '',
-              },
-            },
-    }
+      location: {
+        country: '',
+        city: '',
+        coordinate: { latitude: 0, longitude: 0 },
+      },
+      animal_group: {
+        type: 'Individual',
+        group_name: '',
+        housing: 'BARN',
+        group_created_date: new Date().toISOString().split('T')[0],
+        animals: {
+          tag: '',
+          breed: '',
+          name: '',
+          arrival_date: new Date().toISOString().split('T')[0],
+          birthday: '',
+          type: '',
+          gender: 'MALE',
+          weight: 0,
+          age: '',
+          notes: '',
+        },
+      },
+    },
+  })
 
-    dispatch(createProject(completeProjectData))
-  }, [
-    animalData,
-    manualCoordinates,
-    individualRecords,
-    groupData,
-    farmingType,
-    dispatch,
-  ])
+  const onSubmit = (data: AnimalProjectForm) => {
+    dispatch(createProject(data))
+    toast.success('Animal project created successfully!')
+  }
+
+  const handleTypeChange = (type: 'Individual' | 'Group') => {
+    if (type === 'Individual') {
+      form.setValue('animal_group', {
+        type: 'Individual',
+        group_name: form.watch('animal_group.group_name') || '',
+        housing: form.watch('animal_group.housing') || 'BARN',
+        group_created_date:
+          form.watch('animal_group.group_created_date') ||
+          new Date().toISOString().split('T')[0],
+        animals: {
+          tag: '',
+          breed: '',
+          name: '',
+          arrival_date: new Date().toISOString().split('T')[0],
+          birthday: '',
+          type: '',
+          gender: 'MALE',
+          weight: 0,
+          age: '',
+          notes: '',
+        },
+      })
+    } else {
+      form.setValue('animal_group', {
+        type: 'Group',
+        group_name: form.watch('animal_group.group_name') || '',
+        housing: form.watch('animal_group.housing') || 'BARN',
+        group_created_date:
+          form.watch('animal_group.group_created_date') ||
+          new Date().toISOString().split('T')[0],
+        animals: {
+          breed: '',
+          name: '',
+          arrival_date: new Date().toISOString().split('T')[0],
+          birthday: '',
+          type: '',
+          gender: 'MALE',
+          average_weight: 0,
+          average_age: 0,
+          starting_number: 0,
+          notes: '',
+        },
+      })
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -188,263 +123,295 @@ const AnimalFarmingView = () => {
           </p>
         </div>
 
-        <Card className="mb-8 border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
-            <CardTitle className="text-xl">Project Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6 p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Project Name
-                </Label>
-                <Input
-                  value={animalData.projectName}
-                  onChange={(e) =>
-                    setAnimalData((prev) => ({
-                      ...prev,
-                      projectName: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter project name"
-                  className="text-base"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Animal Type
-                </Label>
-                <Select
-                  value={animalData.animalType}
-                  onValueChange={(value) =>
-                    setAnimalData((prev) => ({ ...prev, animalType: value }))
-                  }
-                >
-                  <SelectTrigger className=" text-base">
-                    <SelectValue placeholder="Select animal type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cattle">Cattle</SelectItem>
-                    <SelectItem value="sheep">Sheep</SelectItem>
-                    <SelectItem value="goats">Goats</SelectItem>
-                    <SelectItem value="pigs">Pigs</SelectItem>
-                    <SelectItem value="poultry">Poultry</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Breed
-                </Label>
-                <Input
-                  value={animalData.breed}
-                  onChange={(e) =>
-                    setAnimalData((prev) => ({
-                      ...prev,
-                      breed: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter breed"
-                  className=" text-base"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Start Date
-                </Label>
-                <Input
-                  type="date"
-                  value={animalData.startDate}
-                  onChange={(e) =>
-                    setAnimalData((prev) => ({
-                      ...prev,
-                      startDate: e.target.value,
-                    }))
-                  }
-                  className="w-32 text-base"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-sm font-semibold text-gray-700 mb-2 block">
-                Location Description
-              </Label>
-              <Textarea
-                value={animalData.location}
-                onChange={(e) =>
-                  setAnimalData((prev) => ({
-                    ...prev,
-                    location: e.target.value,
-                  }))
-                }
-                placeholder="Describe the farm location"
-                className="min-h-[80px] text-base"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-emerald-600" />
-                <Label className="text-sm font-semibold text-gray-700">
-                  GPS Coordinates
-                </Label>
-                {permissionState === 'granted' && (
-                  <div className="flex items-center gap-1 text-green-600 text-sm">
-                    <CheckCircle className="h-4 w-4" />
-                    Auto-detected
-                  </div>
-                )}
-              </div>
-
-              {permissionState === 'granted' ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs text-gray-500">Latitude</Label>
-                    <div className=" px-3 py-2 bg-green-50 border border-green-200 rounded-md flex items-center text-green-700 font-medium">
-                      {manualCoordinates.latitude}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Longitude</Label>
-                    <div className=" px-3 py-2 bg-green-50 border border-green-200 rounded-md flex items-center text-green-700 font-medium">
-                      {manualCoordinates.longitude}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-gray-500">Latitude</Label>
-                      <Input
-                        value={manualCoordinates.latitude}
-                        onChange={(e) =>
-                          setManualCoordinates((prev) => ({
-                            ...prev,
-                            latitude: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter latitude"
-                        className=" text-base"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">Longitude</Label>
-                      <Input
-                        value={manualCoordinates.longitude}
-                        onChange={(e) =>
-                          setManualCoordinates((prev) => ({
-                            ...prev,
-                            longitude: e.target.value,
-                          }))
-                        }
-                        placeholder="Enter longitude"
-                        className=" text-base"
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    onClick={handleLocationRequest}
-                    disabled={isLoading}
-                    className="bg-gradient-to-r from-emerald-500 to-indigo-600 hover:from-emerald-600 hover:to-indigo-700 text-white"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Getting Location...
-                      </>
-                    ) : (
-                      <>
-                        <MapPin className="h-4 w-4 mr-2" />
-                        Get Current Location
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Tabs
-          value={farmingType}
-          onValueChange={(value) => setFarmingType(value as FarmingType)}
-          className="space-y-6"
-        >
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/80 backdrop-blur-sm border shadow-lg">
-            <TabsTrigger
-              value="individual"
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-700 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
-            >
-              <Beef className="h-4 w-4" />
-              Individual Records
-            </TabsTrigger>
-            <TabsTrigger
-              value="group"
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-700 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
-            >
-              <Users className="h-4 w-4" />
-              Group Records
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="individual" className="space-y-6">
-            <Card className="border-1 shadow-lg bg-white/80 backdrop-blur-sm pt-0">
-              <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-700 rounded-t-lg py-2">
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <Beef className="h-5 w-5" />
-                  Individual Animal Records
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                {individualRecords.map((record) => (
-                  <AnimalRecordRow
-                    key={record.id}
-                    record={record}
-                    updateIndividualRecord={updateIndividualRecord}
-                    removeIndividualRecord={removeIndividualRecord}
-                    disableRemove={individualRecords.length === 1}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
+              <CardTitle className="text-xl">Project Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Project Name</Label>
+                  <Input
+                    placeholder="Dairy Cattle Group A"
+                    {...form.register('name')}
                   />
-                ))}
-                <Button
-                  onClick={addIndividualRecord}
-                  variant="outline"
-                  className="w-full bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Animal
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  {form.formState.errors.name && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.name.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
+                    value={form.watch('status')}
+                    onValueChange={(value) =>
+                      form.setValue('status', value as any)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Planning">Planning</SelectItem>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Country Code</Label>
+                  <Input
+                    placeholder="KE"
+                    maxLength={2}
+                    {...form.register('location.country')}
+                  />
+                  {form.formState.errors.location?.country && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.location.country.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input
+                    placeholder="Nairobi"
+                    {...form.register('location.city')}
+                  />
+                  {form.formState.errors.location?.city && (
+                    <p className="text-sm text-red-500">
+                      {form.formState.errors.location.city.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Latitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="-1.5246642"
+                    {...form.register('location.coordinate.latitude', {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  {form.formState.errors.location?.coordinate?.latitude && (
+                    <p className="text-sm text-red-500">
+                      {
+                        form.formState.errors.location.coordinate.latitude
+                          .message
+                      }
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Longitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="37.2650979"
+                    {...form.register('location.coordinate.longitude', {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  {form.formState.errors.location?.coordinate?.longitude && (
+                    <p className="text-sm text-red-500">
+                      {
+                        form.formState.errors.location.coordinate.longitude
+                          .message
+                      }
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="group" className="space-y-6">
-            <GroupStatisticsForm
-              groupData={groupData}
-              setGroupData={setGroupData}
-            />
-          </TabsContent>
-        </Tabs>
+          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
+              <CardTitle className="text-xl">
+                Soil Information (Optional)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Phosphorous</Label>
+                  <Input
+                    type="number"
+                    placeholder="40"
+                    {...form.register('soil.phosphorous', {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Potassium</Label>
+                  <Input
+                    type="number"
+                    placeholder="40"
+                    {...form.register('soil.potassium', {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Nitrogen</Label>
+                  <Input
+                    type="number"
+                    placeholder="40"
+                    {...form.register('soil.nitrogen', { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Soil pH</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="5"
+                    {...form.register('soil.soil_ph', { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <div className="mt-8 flex justify-end space-x-4">
-          <Button
-            variant="outline"
-            className="px-8 py-3 text-base border-gray-300 hover:bg-gray-50 bg-transparent"
+          <Tabs
+            value={form.watch('animal_group.type')}
+            onValueChange={(value) =>
+              handleTypeChange(value as 'Individual' | 'Group')
+            }
+            className="space-y-6"
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateProject}
-            className="px-8 py-3 text-base bg-gradient-to-r from-green-700 to-emerald-600 text-white shadow-lg"
-          >
-            Save Project
-          </Button>
-        </div>
+            <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/80 backdrop-blur-sm border shadow-lg">
+              <TabsTrigger
+                value="Individual"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-700 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
+              >
+                <Beef className="h-4 w-4" />
+                Individual Records
+              </TabsTrigger>
+              <TabsTrigger
+                value="Group"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-700 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
+              >
+                <Users className="h-4 w-4" />
+                Group Records
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="Individual">
+              <Card className="border-1 shadow-lg bg-white/80 backdrop-blur-sm pt-0">
+                <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-700 rounded-t-lg py-2">
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Beef className="h-5 w-5" />
+                    Individual Animal Record
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <IndividualAnimalRow form={form} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="Group">
+              <div className="space-y-4">
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
+                    <CardTitle className="text-xl">
+                      Animal Group Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6 p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Group Name</Label>
+                        <Input
+                          placeholder="Group A"
+                          {...form.register('animal_group.group_name')}
+                        />
+                        {form.formState.errors.animal_group?.group_name && (
+                          <p className="text-sm text-red-500">
+                            {
+                              form.formState.errors.animal_group.group_name
+                                .message
+                            }
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Housing Type</Label>
+                        <Select
+                          value={form.watch('animal_group.housing')}
+                          onValueChange={(value) =>
+                            form.setValue('animal_group.housing', value as any)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="BARN">Barn</SelectItem>
+                            <SelectItem value="PASTURE">Pasture</SelectItem>
+                            <SelectItem value="CAGE">Cage</SelectItem>
+                            <SelectItem value="PEN">Pen</SelectItem>
+                            <SelectItem value="COOP">Coop</SelectItem>
+                            <SelectItem value="STABLE">Stable</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Group Created Date</Label>
+                        <Input
+                          type="date"
+                          {...form.register('animal_group.group_created_date')}
+                        />
+                        {form.formState.errors.animal_group
+                          ?.group_created_date && (
+                          <p className="text-sm text-red-500">
+                            {
+                              form.formState.errors.animal_group
+                                .group_created_date.message
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-1 shadow-lg bg-white/80 backdrop-blur-sm pt-0">
+                  <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-700 rounded-t-lg py-2">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Users className="h-5 w-5" />
+                      Group Animal Statistics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <GroupAnimalForm form={form} />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-8 py-3 text-base border-gray-300 hover:bg-gray-50 bg-transparent"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="px-8 py-3 text-base bg-gradient-to-r from-green-700 to-emerald-600 text-white shadow-lg"
+            >
+              Save Project
+            </Button>
+          </div>
+        </form>
       </main>
     </div>
   )
 }
-
-export default AnimalFarmingView
