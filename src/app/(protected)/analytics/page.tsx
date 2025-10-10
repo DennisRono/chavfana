@@ -1,33 +1,33 @@
-"use client"
+'use client'
 
-import { useEffect, useMemo } from "react"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { getAllProjects } from "@/store/actions/project"
-import { selectProjects, selectProjectLoading } from "@/store/selectors/project"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { BarChart, TrendingUp, Activity, PieChart } from "lucide-react"
+import { useEffect, useMemo } from 'react'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { getAllProjects } from '@/store/actions/project'
+import { selectProjects } from '@/store/selectors/project'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { BarChart, TrendingUp, Activity, PieChart } from 'lucide-react'
 
 const AnalyticsPage = () => {
   const dispatch = useAppDispatch()
-  const projects = useAppSelector(selectProjects)
-  const isLoading = useAppSelector(selectProjectLoading)
+  const { projects, isLoading, error } = useAppSelector(selectProjects)
 
   useEffect(() => {
     dispatch(getAllProjects())
   }, [dispatch])
 
   const stats = useMemo(() => {
-    const totalProjects = projects.length
-    const activeProjects = projects.filter((p) => p.status === "Active").length
-    const animalProjects = projects.filter((p) => p.animal_group).length
-    const plantProjects = totalProjects - animalProjects
-
     return {
-      totalProjects,
-      activeProjects,
-      animalProjects,
-      plantProjects,
+      totalProjects: projects.count,
+      activeProjects: projects.total_active_projects,
+      animalProjects: projects.total_animals,
+      plantProjects: projects.count - projects.total_animals,
     }
   }, [projects])
 
@@ -51,7 +51,9 @@ const AnalyticsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Projects
+            </CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -61,7 +63,9 @@ const AnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Projects
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -71,7 +75,9 @@ const AnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Animal Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Animal Projects
+            </CardTitle>
             <PieChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -81,7 +87,9 @@ const AnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Plant Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Plant Projects
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -93,14 +101,21 @@ const AnalyticsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Project Overview</CardTitle>
-          <CardDescription>Summary of all your farming projects</CardDescription>
+          <CardDescription>
+            Summary of all your farming projects
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm">Project Completion Rate</span>
               <span className="text-sm font-medium">
-                {stats.totalProjects > 0 ? Math.round((stats.activeProjects / stats.totalProjects) * 100) : 0}%
+                {stats.totalProjects > 0
+                  ? Math.round(
+                      (stats.activeProjects / stats.totalProjects) * 100
+                    )
+                  : 0}
+                %
               </span>
             </div>
             <div className="flex justify-between items-center">
