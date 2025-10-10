@@ -1,32 +1,20 @@
 import { z } from 'zod'
 
-const soilSchema = z
-  .object({
-    phosphorous: z
-      .number()
-      .min(0, 'Phosphorous cannot be negative')
-      .max(1000, 'Phosphorous value too high'),
-    potassium: z
-      .number()
-      .min(0, 'Potassium cannot be negative')
-      .max(1000, 'Potassium value too high'),
-    nitrogen: z
-      .number()
-      .min(0, 'Nitrogen cannot be negative')
-      .max(1000, 'Nitrogen value too high'),
-    soil_ph: z
-      .number()
-      .min(0, 'pH must be between 0 and 14')
-      .max(14, 'pH must be between 0 and 14'),
-  })
+const dateFormat = /^\d{4}-\d{2}-\d{2}$/
+const dateString = z
+  .string()
+  .transform((str) => (str === '' ? undefined : str))
   .optional()
+  .refine((val) => !val || dateFormat.test(val), {
+    message: 'Date has wrong format. Use YYYY-MM-DD.',
+  })
 
 const individualAnimalSchema = z.object({
   tag: z.string().min(1, 'Tag ID is required'),
   breed: z.string().min(1, 'Breed is required'),
-  name: z.string().optional(),
-  arrival_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  birthday: z.string().optional(),
+  name: z.string().min(1, 'animal name is required'),
+  arrival_date: dateString,
+  birthday: dateString,
   type: z.string().min(1, 'Animal type is required'),
   gender: z.enum(['MALE', 'FEMALE'], {
     error: () => ({ message: 'Invalid gender' }),
@@ -38,9 +26,9 @@ const individualAnimalSchema = z.object({
 
 const groupAnimalSchema = z.object({
   breed: z.string().min(1, 'Breed is required'),
-  name: z.string().optional(),
-  arrival_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  birthday: z.string().optional(),
+  name: z.string().min(1, 'animal name is required'),
+  arrival_date: dateString,
+  birthday: dateString.optional(),
   type: z.string().min(1, 'Animal type is required'),
   gender: z.enum(['MALE', 'FEMALE'], {
     error: () => ({ message: 'Invalid gender' }),
@@ -51,28 +39,24 @@ const groupAnimalSchema = z.object({
   notes: z.string().optional(),
 })
 
-const animalGroupSchema = z.discriminatedUnion('type', [
+const baseFields = {
+  group_name: z.string().min(1, 'Group name is required'),
+  housing: z.enum(['BARN', 'PASTURE', 'CAGE', 'PEN', 'COOP', 'STABLE'], {
+    error: () => ({ message: 'Invalid housing type' }),
+  }),
+  group_created_date: dateString,
+}
+
+const baseAnimalGroupSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('Individual'),
-    group_name: z.string().min(1, 'Group name is required'),
-    housing: z.enum(['BARN', 'PASTURE', 'CAGE', 'PEN', 'COOP', 'STABLE'], {
-      error: () => ({ message: 'Invalid housing type' }),
-    }),
-    group_created_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-    animals: individualAnimalSchema,
+    ...baseFields,
+    animals: individualAnimalSchema.optional(),
   }),
   z.object({
     type: z.literal('Group'),
-    group_name: z.string().min(1, 'Group name is required'),
-    housing: z.enum(['BARN', 'PASTURE', 'CAGE', 'PEN', 'COOP', 'STABLE'], {
-      error: () => ({ message: 'Invalid housing type' }),
-    }),
-    group_created_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-    animals: groupAnimalSchema,
+    ...baseFields,
+    animals: groupAnimalSchema.optional(),
   }),
 ])
 
@@ -81,7 +65,7 @@ export const animalProjectSchema = z.object({
     .string()
     .min(1, 'Project name is required')
     .max(100, 'Project name must be less than 100 characters'),
-  created_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  created_date: dateString,
   type: z.literal('AnimalKeepingProject'),
   status: z.enum(['Planning', 'Active', 'Completed', 'Archived']),
   location: z.object({
@@ -101,8 +85,7 @@ export const animalProjectSchema = z.object({
         .max(180, 'Longitude must be between -180 and 180'),
     }),
   }),
-  soil: soilSchema,
-  animal_group: animalGroupSchema,
+  animal_group: baseAnimalGroupSchema,
 })
 
 export type AnimalProjectForm = z.infer<typeof animalProjectSchema>

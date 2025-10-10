@@ -15,26 +15,23 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Beef, CheckCircle, Navigation, Users } from 'lucide-react'
-import {
-  animalProjectSchema,
-  type AnimalProjectForm,
-} from '@/schemas/animal-farming'
 import { IndividualAnimalRow } from './components/individual-animal-row'
 import { GroupAnimalForm } from './components/group-animal-form'
 import { toast } from 'sonner'
 import { createProject } from '@/store/actions/project'
 import { useAppDispatch } from '@/store/hooks'
 import { useCallback, useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
 import africanCountries from '@/data/countries.json'
 import { useUserLocation } from '@/hooks/use-user-location'
+import {
+  AnimalProjectForm,
+  animalProjectSchema,
+} from '@/schemas/animal-farming'
 
 export default function AnimalFarmingForm() {
   const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
   const { coordinates, error, permissionState, isLoading, requestLocation } =
     useUserLocation()
-  const [countryOpen, setCountryOpen] = useState(false)
-  const [cityOpen, setCityOpen] = useState(false)
   const dispatch = useAppDispatch()
 
   const form = useForm<AnimalProjectForm>({
@@ -70,6 +67,9 @@ export default function AnimalFarmingForm() {
     },
   })
 
+  console.log(form.formState.errors)
+  console.log(form.getValues())
+
   useEffect(() => {
     if (permissionState === 'granted' && coordinates) {
       form.setValue('location.coordinate.latitude', coordinates.latitude)
@@ -103,6 +103,7 @@ export default function AnimalFarmingForm() {
 
   useEffect(() => {
     if (formType === 'Individual') {
+      form.setValue('animal_group.type', 'Individual')
       form.setValue('animal_group', {
         type: 'Individual',
         group_name: form.watch('animal_group.group_name') || '',
@@ -124,6 +125,7 @@ export default function AnimalFarmingForm() {
         },
       })
     } else {
+      form.setValue('animal_group.type', 'Group')
       form.setValue('animal_group', {
         type: 'Group',
         group_name: form.watch('animal_group.group_name') || '',
@@ -355,7 +357,7 @@ export default function AnimalFarmingForm() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+          {/* <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
               <CardTitle className="text-xl">
                 Soil Information (Optional)
@@ -368,6 +370,7 @@ export default function AnimalFarmingForm() {
                   <Input
                     type="number"
                     placeholder="40"
+                    defaultValue={0}
                     {...form.register('soil.phosphorous', {
                       valueAsNumber: true,
                     })}
@@ -378,6 +381,7 @@ export default function AnimalFarmingForm() {
                   <Input
                     type="number"
                     placeholder="40"
+                    defaultValue={0}
                     {...form.register('soil.potassium', {
                       valueAsNumber: true,
                     })}
@@ -388,6 +392,7 @@ export default function AnimalFarmingForm() {
                   <Input
                     type="number"
                     placeholder="40"
+                    defaultValue={0}
                     {...form.register('soil.nitrogen', { valueAsNumber: true })}
                   />
                 </div>
@@ -397,18 +402,18 @@ export default function AnimalFarmingForm() {
                     type="number"
                     step="0.1"
                     placeholder="5"
+                    defaultValue={0}
                     {...form.register('soil.soil_ph', { valueAsNumber: true })}
                   />
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Tabs
             value={formType}
             onValueChange={(value) => {
               setFormType(value as 'Individual' | 'Group')
-              // handleTypeChange(value as 'Individual' | 'Group')
             }}
             className="space-y-6"
           >
@@ -438,7 +443,7 @@ export default function AnimalFarmingForm() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <IndividualAnimalRow form={form} />
+                  <IndividualAnimalRow form={form} formType={formType} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -516,7 +521,7 @@ export default function AnimalFarmingForm() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <GroupAnimalForm form={form} />
+                    <GroupAnimalForm form={form} formType={formType} />
                   </CardContent>
                 </Card>
               </div>

@@ -8,17 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { UseFormReturn } from 'react-hook-form'
-import type { AnimalProjectForm } from '@/schemas/animal-farming'
 
-// interface IndividualAnimalRowProps {
-//   form: UseFormReturn<AnimalProjectForm>
-// }
 interface IndividualAnimalRowProps {
   form: any
+  formType: 'Individual' | 'Group'
 }
 
-export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
+export function IndividualAnimalRow({
+  form,
+  formType,
+}: IndividualAnimalRowProps) {
   const animalType = form.watch('animal_group.type')
   if (animalType !== 'Individual') return null
 
@@ -31,11 +30,12 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
             placeholder="A001"
             {...form.register('animal_group.animals.tag')}
           />
-          {form.formState.errors.animal_group?.animals?.tag && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.tag.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.tag && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.tag.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Breed</Label>
@@ -43,18 +43,38 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
             placeholder="Holstein"
             {...form.register('animal_group.animals.breed')}
           />
-          {form.formState.errors.animal_group?.animals?.breed && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.breed.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.breed && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.breed.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
-          <Label>Name (Optional)</Label>
+          <Label>Group Name</Label>
+          <Input
+            placeholder="Bessie"
+            {...form.register('animal_group.group_name')}
+          />
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.group_name && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.group_name}
+              </p>
+            )}
+        </div>
+        <div className="space-y-2">
+          <Label>Name</Label>
           <Input
             placeholder="Bessie"
             {...form.register('animal_group.animals.name')}
           />
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.name && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.name.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Animal Type</Label>
@@ -62,11 +82,12 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
             placeholder="Cattle"
             {...form.register('animal_group.animals.type')}
           />
-          {form.formState.errors.animal_group?.animals?.type && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.type.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.type && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.type.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Gender</Label>
@@ -87,11 +108,12 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
               <SelectItem value="FEMALE">Female</SelectItem>
             </SelectContent>
           </Select>
-          {form.formState.errors.animal_group?.animals?.gender && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.gender.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.gender && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.gender.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Age</Label>
@@ -99,11 +121,12 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
             placeholder="24 months"
             {...form.register('animal_group.animals.age')}
           />
-          {form.formState.errors.animal_group?.animals?.age && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.age.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.age && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.age.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Weight (kg)</Label>
@@ -114,11 +137,12 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
               valueAsNumber: true,
             })}
           />
-          {form.formState.errors.animal_group?.animals?.weight && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.weight.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.weight && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.weight.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2">
           <Label>Arrival Date</Label>
@@ -126,18 +150,28 @@ export function IndividualAnimalRow({ form }: IndividualAnimalRowProps) {
             type="date"
             {...form.register('animal_group.animals.arrival_date')}
           />
-          {form.formState.errors.animal_group?.animals?.arrival_date && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.animal_group.animals.arrival_date.message}
-            </p>
-          )}
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.arrival_date && (
+              <p className="text-sm text-red-500">
+                {
+                  form.formState.errors.animal_group.animals.arrival_date
+                    .message
+                }
+              </p>
+            )}
         </div>
         <div className="space-y-2">
-          <Label>Birthday (Optional)</Label>
+          <Label>Birthday</Label>
           <Input
             type="date"
             {...form.register('animal_group.animals.birthday')}
           />
+          {formType === 'Individual' &&
+            form.formState.errors.animal_group?.animals?.birthday && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.animal_group.animals.birthday.message}
+              </p>
+            )}
         </div>
         <div className="space-y-2 md:col-span-2">
           <Label>Notes (Optional)</Label>

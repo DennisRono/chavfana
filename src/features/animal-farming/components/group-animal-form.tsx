@@ -9,17 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { UseFormReturn } from 'react-hook-form'
-import type { AnimalProjectForm } from '@/schemas/animal-farming'
 
-// interface GroupAnimalFormProps {
-//   form: UseFormReturn<AnimalProjectForm>
-// }
 interface GroupAnimalFormProps {
   form: any
+  formType: 'Individual' | 'Group'
 }
 
-export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
+export function GroupAnimalForm({ form, formType }: GroupAnimalFormProps) {
   const animalType = form.watch('animal_group.type')
   if (animalType !== 'Group') return null
 
@@ -32,14 +28,14 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
             placeholder="Holstein"
             {...form.register('animal_group.animals.breed')}
           />
-          {form.formState.errors.animal_group?.animals?.breed && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.breed && (
             <p className="text-sm text-red-500">
               {form.formState.errors.animal_group.animals.breed.message}
             </p>
           )}
         </div>
         <div className="space-y-2">
-          <Label>Name (Optional)</Label>
+          <Label>Name</Label>
           <Input
             placeholder="Group A"
             {...form.register('animal_group.animals.name')}
@@ -51,7 +47,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
             placeholder="Cattle"
             {...form.register('animal_group.animals.type')}
           />
-          {form.formState.errors.animal_group?.animals?.type && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.type && (
             <p className="text-sm text-red-500">
               {form.formState.errors.animal_group.animals.type.message}
             </p>
@@ -76,7 +72,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
               <SelectItem value="FEMALE">Female</SelectItem>
             </SelectContent>
           </Select>
-          {form.formState.errors.animal_group?.animals?.gender && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.gender && (
             <p className="text-sm text-red-500">
               {form.formState.errors.animal_group.animals.gender.message}
             </p>
@@ -91,7 +87,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
               valueAsNumber: true,
             })}
           />
-          {form.formState.errors.animal_group?.animals?.starting_number && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.starting_number && (
             <p className="text-sm text-red-500">
               {
                 form.formState.errors.animal_group.animals.starting_number
@@ -109,7 +105,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
               valueAsNumber: true,
             })}
           />
-          {form.formState.errors.animal_group?.animals?.average_age && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.average_age && (
             <p className="text-sm text-red-500">
               {form.formState.errors.animal_group.animals.average_age.message}
             </p>
@@ -124,7 +120,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
               valueAsNumber: true,
             })}
           />
-          {form.formState.errors.animal_group?.animals?.average_weight && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.average_weight && (
             <p className="text-sm text-red-500">
               {
                 form.formState.errors.animal_group.animals.average_weight
@@ -139,7 +135,7 @@ export function GroupAnimalForm({ form }: GroupAnimalFormProps) {
             type="date"
             {...form.register('animal_group.animals.arrival_date')}
           />
-          {form.formState.errors.animal_group?.animals?.arrival_date && (
+          {formType==="Group" && form.formState.errors.animal_group?.animals?.arrival_date && (
             <p className="text-sm text-red-500">
               {form.formState.errors.animal_group.animals.arrival_date.message}
             </p>
