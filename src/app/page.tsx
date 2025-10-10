@@ -34,7 +34,7 @@ import Image from 'next/image'
 export default function Homepage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
         <div className="container mx-auto flex h-16 items-center justify-between">
           <Link className="flex items-center gap-2" href="/">
             <Sprout className="h-8 w-8 text-primary" />

@@ -1,13 +1,7 @@
 'use client'
-import {
-  useCallback,
-  useState,
-  useRef,
-  useMemo,
-  useTransition,
-  useEffect,
-} from 'react'
-import { useForm, Controller, useFieldArray } from 'react-hook-form'
+
+import { useCallback, useState, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,40 +30,30 @@ import {
 import {
   Plus,
   MapPin,
-  Wheat,
   Navigation,
   CheckCircle,
   Droplets,
-  CloudRain,
   ChevronsUpDown,
   Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { SupplementRow } from './components/supplement-row'
-import { UpdatableFieldList } from './components/updatable-field-list'
-import { FIELD_LABELS } from '@/constants/plant-farming'
-import type { PlantingProject } from '@/types/project'
-import type {
-  FieldRecord,
-  UpdatableFieldKey,
-  Supplement,
-} from '@/types/plant-farming'
+import { SpeciesRow } from './components/species-row'
 import { useUserLocation } from '@/hooks/use-user-location'
 import { useAppDispatch } from '@/store/hooks'
 import { createProject } from '@/store/actions/project'
 import { cn } from '@/lib/utils'
 import africanCountries from '@/data/countries.json'
-import { plantingProjectSchema } from '@/schemas/plant-farming'
-import z from 'zod'
+import {
+  plantingProjectSchema,
+  type PlantingProjectForm,
+} from '@/schemas/plant-farming'
 
-const PlantFarmingView = () => {
+const PlantingEventForm = () => {
   const { coordinates, error, permissionState, isLoading, requestLocation } =
     useUserLocation()
-
   const [countryOpen, setCountryOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
-
-  type PlantingProjectForm = z.infer<typeof plantingProjectSchema>
+  const dispatch = useAppDispatch()
 
   const {
     register,
@@ -86,192 +70,94 @@ const PlantFarmingView = () => {
       created_date: new Date().toISOString().split('T')[0],
       type: 'PlantingProject',
       status: 'Planning',
-      is_active: true,
       location: {
         country: 'KE',
         city: '',
-        coordinate: {
-          latitude: 0,
-          longitude: 0,
-        },
-      },
-      soil: {
-        type: 'Loam',
-        nitrogen: 0,
-        phosphorous: 0,
-        potassium: 0,
-        soil_ph: 0,
-      },
-      weather: {
-        temperature: 0,
-        humidity: 0,
-        precipitation: 0,
-        wind_speed: 0,
-        solar_radiation: 0,
+        coordinate: { latitude: 0, longitude: 0 },
       },
       planting_event: {
         planting_date: '',
         area_size: '',
-        area_size_unit: 'acres',
+        area_size_unit: 'ACRE',
         end_date: '',
         notes: '',
-        stage: 'Planning',
+        stage: '',
         type: '',
         name: '',
-        species: [],
+        species: [
+          {
+            species: {
+              variety: '',
+              name: '',
+              type: '',
+              bloom_szn: '',
+              notes: '',
+            },
+            amount: '',
+            unit: 'GRAM',
+          },
+        ],
       },
     },
   })
 
-  console.log(errors)
-
   const locationCountry = watch('location.country')
-  const locationCity = watch('location.city')
-  const soilType = watch('soil.type')
+  const species = watch('planting_event.species') || []
 
-  const { fields, append, remove, update } = useFieldArray({
-    control,
-    name: 'supplements' as any,
-  })
-
-  const [supplements, setSupplements] = useState<Supplement[]>([
-    { id: Date.now(), name: '', quantity: '', price: '' },
-  ])
-
-  const [updatableFields, setUpdatableFields] = useState<
-    Record<UpdatableFieldKey, FieldRecord[]>
-  >({
-    fertilitySpread: [],
-    pest: [],
-    diseases: [],
-    management: [],
-    species: [],
-    harvest: [],
-  })
-
-  const [newFieldValue, setNewFieldValue] = useState('')
-  const [selectedField, setSelectedField] =
-    useState<UpdatableFieldKey>('fertilitySpread')
-
-  const idCounterRef = useRef<number>(Date.now())
-  const [isPending, startTransition] = useTransition()
-  const dispatch = useAppDispatch()
-
-  const fieldLabels = useMemo(() => FIELD_LABELS, [])
-  const supplementsCount = useMemo(() => supplements.length, [supplements])
-
-  const addSupplement = useCallback(() => {
-    idCounterRef.current = idCounterRef.current + 1
-    setSupplements((prev) => [
-      ...prev,
-      { id: idCounterRef.current, name: '', quantity: '', price: '' },
+  const addSpecies = useCallback(() => {
+    const currentSpecies = species || []
+    setValue('planting_event.species', [
+      ...currentSpecies,
+      {
+        species: { variety: '', name: '', type: '', bloom_szn: '', notes: '' },
+        amount: '',
+        unit: 'GRAM',
+      },
     ])
-  }, [])
+  }, [species, setValue])
 
-  const removeSupplement = useCallback((id: number) => {
-    setSupplements((prev) => prev.filter((s) => s.id !== id))
-  }, [])
-
-  const updateSupplement = useCallback(
-    (id: number, field: keyof Supplement, value: string) => {
-      setSupplements((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
+  const removeSpecies = useCallback(
+    (index: number) => {
+      const currentSpecies = species || []
+      setValue(
+        'planting_event.species',
+        currentSpecies.filter((_, i) => i !== index)
       )
     },
-    []
+    [species, setValue]
   )
 
-  const addFieldValue = useCallback(() => {
-    if (!newFieldValue.trim()) return
-    const payload: FieldRecord = {
-      value: newFieldValue,
-      timestamp: new Date().toISOString(),
-    }
-    startTransition(() => {
-      setUpdatableFields((prev) => ({
-        ...prev,
-        [selectedField]: [...prev[selectedField], payload],
-      }))
-      setNewFieldValue('')
-    })
-  }, [newFieldValue, selectedField])
-
-  const removeFieldValue = useCallback(
-    (field: UpdatableFieldKey, index: number) => {
-      setUpdatableFields((prev) => ({
-        ...prev,
-        [field]: prev[field].filter((_, i) => i !== index),
-      }))
+  const updateSpecies = useCallback(
+    (index: number, field: string, value: string) => {
+      const currentSpecies = [...(species || [])]
+      const fieldParts = field.split('.')
+      if (fieldParts.length === 2 && fieldParts[0] === 'species') {
+        currentSpecies[index] = {
+          ...currentSpecies[index],
+          species: {
+            ...currentSpecies[index].species,
+            [fieldParts[1]]: value,
+          },
+        }
+      } else {
+        currentSpecies[index] = {
+          ...currentSpecies[index],
+          [field]: value,
+        }
+      }
+      setValue('planting_event.species', currentSpecies)
     },
-    []
+    [species, setValue]
   )
-
-  const supplementRows = useMemo(() => {
-    return supplements.map((s) => (
-      <SupplementRow
-        key={s.id}
-        supplement={s}
-        onUpdate={updateSupplement}
-        onRemove={removeSupplement}
-        disabledRemove={supplementsCount === 1}
-      />
-    ))
-  }, [supplements, updateSupplement, removeSupplement, supplementsCount])
 
   const onCancel = useCallback(() => {
     reset()
-    setSupplements([{ id: Date.now(), name: '', quantity: '', price: '' }])
-    setUpdatableFields({
-      fertilitySpread: [],
-      pest: [],
-      diseases: [],
-      management: [],
-      species: [],
-      harvest: [],
-    })
   }, [reset])
 
-  const onSave = handleSubmit((data) => {
-    console.log(data)
-    const completeProjectData: any = {
-      ...data,
-      // planting_event: {
-      //   ...data.planting_event,
-      //   species: updatableFields.species.map((field) => ({
-      //     species: {
-      //       variety: field.value.split(' - ')[0] || field.value,
-      //       name: field.value.split(' - ')[1] || field.value,
-      //       type: data.planting_event.type || 'Unknown',
-      //       bloom_szn: 'Unknown',
-      //       notes: '',
-      //     },
-      //     amount: '1',
-      //     unit: 'unit',
-      //   })),
-      // },
-      type: 'PlantingProject',
-      is_active: true,
-      weather: {
-        temperature: 0,
-        humidity: 0,
-        precipitation: 0,
-        wind_speed: 0,
-        solar_radiation: 0,
-      },
-      name: '',
-      created_date: '',
-      status: 'Planning',
-      location: {
-        country: data.location?.country ?? '',
-        city: data.location?.city ?? '',
-        coordinate: {
-          latitude: data.location?.coordinate?.latitude ?? 0,
-          longitude: data.location?.coordinate?.longitude ?? 0,
-        },
-      },
-    }
-
-    dispatch(createProject(completeProjectData))
+  const onSave = handleSubmit((data: any) => {
+    console.log('Form Data:', data)
+    dispatch(createProject(data))
+    toast.success('Project created successfully!')
   })
 
   useEffect(() => {
@@ -568,201 +454,17 @@ const PlantFarmingView = () => {
                     </div>
                   )}
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cropType" className="text-sm font-semibold">
-                    Crop Type
-                  </Label>
-                  <Input
-                    id="cropType"
-                    placeholder="e.g., Wheat, Corn, Rice"
-                    className="h-11"
-                    {...register('planting_event.type')}
-                  />
-                  {errors.planting_event?.type && (
-                    <p className="text-sm text-red-500">
-                      {errors.planting_event.type.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="areaSize" className="text-sm font-semibold">
-                      Area Size
-                    </Label>
-                    <Input
-                      id="areaSize"
-                      placeholder="e.g., 25"
-                      className="h-11"
-                      {...register('planting_event.area_size')}
-                    />
-                    {errors.planting_event?.area_size && (
-                      <p className="text-sm text-red-500">
-                        {errors.planting_event.area_size.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="plantingDate"
-                      className="text-sm font-semibold"
-                    >
-                      Area Unit
-                    </Label>
-                    <Select>
-                      <SelectTrigger className="w-[100px] !h-11">
-                        <SelectValue placeholder="Acres" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="acres">Acres</SelectItem>
-                        <SelectItem value="hectares">Acres</SelectItem>
-                        <SelectItem value="sqm">Acres</SelectItem>
-                        <SelectItem value="sqft">Acres</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="plantingDate"
-                      className="text-sm font-semibold"
-                    >
-                      Planting Date
-                    </Label>
-                    <Input
-                      id="plantingDate"
-                      type="date"
-                      className="h-11 !w-[140px]"
-                      {...register('planting_event.planting_date')}
-                    />
-                    {errors.planting_event?.planting_date && (
-                      <p className="text-sm text-red-500">
-                        {errors.planting_event.planting_date.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="plantingDate"
-                      className="text-sm font-semibold"
-                    >
-                      End Date
-                    </Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      className="h-11 !w-[140px]"
-                      {...register('planting_event.end_date')}
-                    />
-                    {errors.planting_event?.end_date && (
-                      <p className="text-sm text-red-500">
-                        {errors.planting_event.end_date.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="areaSize" className="text-sm font-semibold">
-                      Notes
-                    </Label>
-                    <Input
-                      id="notes"
-                      placeholder="notes..."
-                      className="h-11"
-                      {...register('planting_event.notes')}
-                    />
-                    {errors.planting_event?.notes && (
-                      <p className="text-sm text-red-500">
-                        {errors.planting_event.notes.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="plantingStage"
-                      className="text-sm font-semibold"
-                    >
-                      Stage
-                    </Label>
-                    <Select>
-                      <SelectTrigger className="w-[100px] !h-11">
-                        <SelectValue placeholder="Stage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Planning">Planning</SelectItem>
-                        <SelectItem value="Planting">Planting</SelectItem>
-                        <SelectItem value="Growing">Growing</SelectItem>
-                        <SelectItem value="Harvesting">Harvesting</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-t-lg py-2">
-                <CardTitle className="text-xl">Required Supplements</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                {supplementRows}
-                <Button
-                  type="button"
-                  onClick={addSupplement}
-                  variant="outline"
-                  className="w-full h-11 border-2 border-dashed border-orange-300 hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20 bg-transparent"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Supplement
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
             <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-amber-600 to-yellow-500 text-white rounded-t-lg py-2">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <Droplets className="h-6 w-6" />
-                  Soil Information
+                  Soil Information (Optional)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
-                <div className="space-y-2">
-                  <Label htmlFor="soilType" className="text-sm font-semibold">
-                    Soil Type
-                  </Label>
-                  <Controller
-                    name="soil.type"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Sandy">Sandy</SelectItem>
-                          <SelectItem value="Clay">Clay</SelectItem>
-                          <SelectItem value="Loam">Loam</SelectItem>
-                          <SelectItem value="Silty">Silty</SelectItem>
-                          <SelectItem value="Peaty">Peaty</SelectItem>
-                          <SelectItem value="Chalky">Chalky</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.soil?.type && (
-                    <p className="text-sm text-red-500">
-                      {errors.soil.type.message}
-                    </p>
-                  )}
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="nitrogen" className="text-sm font-semibold">
@@ -845,188 +547,205 @@ const PlantFarmingView = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-t-lg py-2">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <CloudRain className="h-6 w-6" />
-                  Weather Conditions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="temperature"
-                      className="text-sm font-semibold"
-                    >
-                      Temperature (°C)
-                    </Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      placeholder="0"
-                      className="h-11"
-                      {...register('weather.temperature', {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    {errors.weather?.temperature && (
-                      <p className="text-sm text-red-500">
-                        {errors.weather.temperature.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="humidity" className="text-sm font-semibold">
-                      Humidity (%)
-                    </Label>
-                    <Input
-                      id="humidity"
-                      type="number"
-                      placeholder="0"
-                      className="h-11"
-                      {...register('weather.humidity', { valueAsNumber: true })}
-                    />
-                    {errors.weather?.humidity && (
-                      <p className="text-sm text-red-500">
-                        {errors.weather.humidity.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="precipitation"
-                      className="text-sm font-semibold"
-                    >
-                      Precipitation (mm)
-                    </Label>
-                    <Input
-                      id="precipitation"
-                      type="number"
-                      placeholder="0"
-                      className="h-11"
-                      {...register('weather.precipitation', {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    {errors.weather?.precipitation && (
-                      <p className="text-sm text-red-500">
-                        {errors.weather.precipitation.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="windSpeed"
-                      className="text-sm font-semibold"
-                    >
-                      Wind Speed (km/h)
-                    </Label>
-                    <Input
-                      id="windSpeed"
-                      type="number"
-                      placeholder="0"
-                      className="h-11"
-                      {...register('weather.wind_speed', {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    {errors.weather?.wind_speed && (
-                      <p className="text-sm text-red-500">
-                        {errors.weather.wind_speed.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="solarRadiation"
-                    className="text-sm font-semibold"
-                  >
-                    Solar Radiation (W/m²)
-                  </Label>
-                  <Input
-                    id="solarRadiation"
-                    type="number"
-                    placeholder="0"
-                    className="h-11"
-                    {...register('weather.solar_radiation', {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {errors.weather?.solar_radiation && (
-                    <p className="text-sm text-red-500">
-                      {errors.weather.solar_radiation.message}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           <Card className="mt-8 shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-emerald-700 to-teal-500 text-white rounded-t-lg py-2">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Wheat className="h-6 w-6" />
-                Plant Event Records
-              </CardTitle>
+              <CardTitle className="text-xl">Planting Event Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
-              <div className="flex gap-4 items-end">
-                <div className="flex-1 space-y-2">
-                  <Label className="text-sm font-semibold">Field Type</Label>
-                  <Select
-                    value={selectedField}
-                    onValueChange={(value) =>
-                      setSelectedField(value as UpdatableFieldKey)
-                    }
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(fieldLabels).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-2 space-y-2">
-                  <Label className="text-sm font-semibold">
-                    Add New Record
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eventName" className="text-sm font-semibold">
+                    Event Name
                   </Label>
                   <Input
-                    placeholder={`Enter ${fieldLabels[
-                      selectedField
-                    ].toLowerCase()} details`}
+                    id="eventName"
+                    placeholder="e.g., event1"
                     className="h-11"
-                    value={newFieldValue}
-                    onChange={(e) => setNewFieldValue(e.target.value)}
+                    {...register('planting_event.name')}
                   />
+                  {errors.planting_event?.name && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.name.message}
+                    </p>
+                  )}
                 </div>
-                <Button
-                  type="button"
-                  onClick={addFieldValue}
-                  disabled={isPending}
-                  className="h-11 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add
-                </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="cropType" className="text-sm font-semibold">
+                    Crop Type
+                  </Label>
+                  <Input
+                    id="cropType"
+                    placeholder="e.g., vegetable"
+                    className="h-11"
+                    {...register('planting_event.type')}
+                  />
+                  {errors.planting_event?.type && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.type.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <UpdatableFieldList
-                updatableFields={updatableFields}
-                onRemove={removeFieldValue}
-                fieldLabels={fieldLabels}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="areaSize" className="text-sm font-semibold">
+                    Area Size
+                  </Label>
+                  <Input
+                    id="areaSize"
+                    placeholder="e.g., 13"
+                    className="h-11"
+                    {...register('planting_event.area_size')}
+                  />
+                  {errors.planting_event?.area_size && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.area_size.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="areaUnit" className="text-sm font-semibold">
+                    Area Unit
+                  </Label>
+                  <Controller
+                    name="planting_event.area_size_unit"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SQUARE_FEET">
+                            Square Feet
+                          </SelectItem>
+                          <SelectItem value="SQUARE_YARD">
+                            Square Yard
+                          </SelectItem>
+                          <SelectItem value="SQUARE_METER">
+                            Square Meter
+                          </SelectItem>
+                          <SelectItem value="ACRE">Acre</SelectItem>
+                          <SelectItem value="HECTARE">Hectare</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.planting_event?.area_size_unit && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.area_size_unit.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="plantingDate"
+                    className="text-sm font-semibold"
+                  >
+                    Planting Date
+                  </Label>
+                  <Input
+                    id="plantingDate"
+                    type="date"
+                    className="h-11"
+                    {...register('planting_event.planting_date')}
+                  />
+                  {errors.planting_event?.planting_date && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.planting_date.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endDate" className="text-sm font-semibold">
+                    End Date (Optional)
+                  </Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    className="h-11"
+                    {...register('planting_event.end_date')}
+                  />
+                  {errors.planting_event?.end_date && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.end_date.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stage" className="text-sm font-semibold">
+                    Stage
+                  </Label>
+                  <Input
+                    id="stage"
+                    placeholder="e.g., blossom"
+                    className="h-11"
+                    {...register('planting_event.stage')}
+                  />
+                  {errors.planting_event?.stage && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.stage.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-sm font-semibold">
+                    Notes (Optional)
+                  </Label>
+                  <Input
+                    id="notes"
+                    placeholder="Additional notes..."
+                    className="h-11"
+                    {...register('planting_event.notes')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Species</h3>
+                  <Button
+                    type="button"
+                    onClick={addSpecies}
+                    variant="outline"
+                    size="sm"
+                    className="border-2 border-dashed border-emerald-300 hover:border-emerald-400 bg-transparent"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Species
+                  </Button>
+                </div>
+                {species.map((sp, index) => (
+                  <SpeciesRow
+                    key={index}
+                    index={index}
+                    species={sp}
+                    onUpdate={updateSpecies}
+                    onRemove={removeSpecies}
+                    disabledRemove={species.length === 1}
+                    errors={errors.planting_event?.species?.[index]}
+                  />
+                ))}
+                {errors.planting_event?.species &&
+                  typeof errors.planting_event.species === 'object' &&
+                  'message' in errors.planting_event.species && (
+                    <p className="text-sm text-red-500">
+                      {errors.planting_event.species.message as string}
+                    </p>
+                  )}
+              </div>
             </CardContent>
           </Card>
 
@@ -1052,4 +771,4 @@ const PlantFarmingView = () => {
   )
 }
 
-export default PlantFarmingView
+export default PlantingEventForm
