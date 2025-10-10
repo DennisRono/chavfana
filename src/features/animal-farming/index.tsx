@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Beef, Users } from 'lucide-react'
+import { Beef, CheckCircle, Navigation, Users } from 'lucide-react'
 import {
   animalProjectSchema,
   type AnimalProjectForm,
@@ -24,11 +24,19 @@ import { GroupAnimalForm } from './components/group-animal-form'
 import { toast } from 'sonner'
 import { createProject } from '@/store/actions/project'
 import { useAppDispatch } from '@/store/hooks'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
+import africanCountries from '@/data/countries.json'
+import { useUserLocation } from '@/hooks/use-user-location'
 
 export default function AnimalFarmingForm() {
   const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
+  const { coordinates, error, permissionState, isLoading, requestLocation } =
+    useUserLocation()
+  const [countryOpen, setCountryOpen] = useState(false)
+  const [cityOpen, setCityOpen] = useState(false)
   const dispatch = useAppDispatch()
+
   const form = useForm<AnimalProjectForm>({
     resolver: zodResolver(animalProjectSchema),
     defaultValues: {
@@ -37,8 +45,8 @@ export default function AnimalFarmingForm() {
       type: 'AnimalKeepingProject',
       status: 'Active',
       location: {
-        country: '',
-        city: '',
+        country: 'KE',
+        city: 'Nairobi',
         coordinate: { latitude: 0, longitude: 0 },
       },
       animal_group: {
@@ -61,6 +69,32 @@ export default function AnimalFarmingForm() {
       },
     },
   })
+
+  useEffect(() => {
+    if (permissionState === 'granted' && coordinates) {
+      form.setValue('location.coordinate.latitude', coordinates.latitude)
+      form.setValue('location.coordinate.longitude', coordinates.longitude)
+    }
+  }, [permissionState, coordinates, form.setValue])
+
+  const handleLocationRequest = useCallback(async () => {
+    try {
+      await requestLocation()
+      if (coordinates) {
+        toast.success('Location accessed successfully!', {
+          description: `Coordinates: ${coordinates.latitude.toFixed(
+            4
+          )}, ${coordinates.longitude.toFixed(4)}`,
+        })
+      }
+    } catch (err) {
+      toast.error('Failed to access location', {
+        description:
+          String(error) ||
+          'Please check your browser permissions and try again.',
+      })
+    }
+  }, [requestLocation, coordinates, error])
 
   const onSubmit = (data: AnimalProjectForm) => {
     dispatch(createProject(data))
@@ -144,86 +178,177 @@ export default function AnimalFarmingForm() {
                     </p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Select
-                    value={form.watch('status')}
-                    onValueChange={(value) =>
-                      form.setValue('status', value as any)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Planning">Planning</SelectItem>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                      <SelectItem value="Archived">Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Country Code</Label>
-                  <Input
-                    placeholder="KE"
-                    maxLength={2}
-                    {...form.register('location.country')}
-                  />
-                  {form.formState.errors.location?.country && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.location.country.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>City</Label>
-                  <Input
-                    placeholder="Nairobi"
-                    {...form.register('location.city')}
-                  />
-                  {form.formState.errors.location?.city && (
-                    <p className="text-sm text-red-500">
-                      {form.formState.errors.location.city.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Latitude</Label>
-                  <Input
-                    type="number"
-                    step="any"
-                    placeholder="-1.5246642"
-                    {...form.register('location.coordinate.latitude', {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {form.formState.errors.location?.coordinate?.latitude && (
-                    <p className="text-sm text-red-500">
-                      {
-                        form.formState.errors.location.coordinate.latitude
-                          .message
+                <div className="flex gap-x-4">
+                  <div className="space-y-2 ">
+                    <Label>Status</Label>
+                    <Select
+                      value={form.watch('status')}
+                      onValueChange={(value) =>
+                        form.setValue('status', value as any)
                       }
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label>Longitude</Label>
-                  <Input
-                    type="number"
-                    step="any"
-                    placeholder="37.2650979"
-                    {...form.register('location.coordinate.longitude', {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  {form.formState.errors.location?.coordinate?.longitude && (
-                    <p className="text-sm text-red-500">
-                      {
-                        form.formState.errors.location.coordinate.longitude
-                          .message
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Planning">Planning</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 ">
+                    <Label>Country</Label>
+                    <Select
+                      value={form.watch('location.country')}
+                      onValueChange={(value) =>
+                        form.setValue('location.country', value as any)
                       }
-                    </p>
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {africanCountries.map((country) => (
+                          <SelectItem value={country.code} key={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 ">
+                    <Label>Country</Label>
+                    <Select
+                      value={form.watch('location.city')}
+                      onValueChange={(value) =>
+                        form.setValue('location.city', value as any)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {africanCountries
+                          .find(
+                            (country) =>
+                              country.code === form.watch('location.country')
+                          )
+                          ?.cities.map((city) => (
+                            <SelectItem value={city} key={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">
+                      Location Coordinates
+                    </Label>
+                    {permissionState === 'granted' && (
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="text-xs font-medium">
+                          Auto-detected
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {permissionState === 'granted' ? (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs text-green-700 dark:text-green-300">
+                            Latitude
+                          </Label>
+                          <p className="font-mono text-sm font-medium">
+                            {coordinates?.latitude?.toFixed(6) || '0.000000'}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-green-700 dark:text-green-300">
+                            Longitude
+                          </Label>
+                          <p className="font-mono text-sm font-medium">
+                            {coordinates?.longitude?.toFixed(6) || '0.000000'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="latitude" className="text-sm">
+                            Latitude
+                          </Label>
+                          <Input
+                            id="latitude"
+                            placeholder="e.g., 40.7128"
+                            className="h-11 font-mono"
+                            type="number"
+                            step="any"
+                            {...form.register('location.coordinate.latitude', {
+                              valueAsNumber: true,
+                            })}
+                          />
+                          {form.formState.errors.location?.coordinate
+                            ?.latitude && (
+                            <p className="text-sm text-red-500">
+                              {
+                                form.formState.errors.location.coordinate
+                                  .latitude.message
+                              }
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="longitude" className="text-sm">
+                            Longitude
+                          </Label>
+                          <Input
+                            id="longitude"
+                            placeholder="e.g., -74.0060"
+                            className="h-11 font-mono"
+                            type="number"
+                            step="any"
+                            {...form.register('location.coordinate.longitude', {
+                              valueAsNumber: true,
+                            })}
+                          />
+                          {form.formState.errors.location?.coordinate
+                            ?.longitude && (
+                            <p className="text-sm text-red-500">
+                              {
+                                form.formState.errors.location.coordinate
+                                  .longitude.message
+                              }
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {(permissionState === 'prompt' ||
+                        permissionState === 'denied') && (
+                        <Button
+                          type="button"
+                          onClick={handleLocationRequest}
+                          disabled={isLoading}
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                        >
+                          <Navigation className="h-4 w-4 mr-2" />
+                          {isLoading
+                            ? 'Requesting Location...'
+                            : 'Use Current Location'}
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
