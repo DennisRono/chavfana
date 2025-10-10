@@ -4,11 +4,7 @@ import { useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { getAllProjects } from '@/store/actions/project'
-import {
-  selectProjects,
-  selectProjectLoading,
-  selectProjectError,
-} from '@/store/selectors/project'
+import { selectProjects } from '@/store/selectors/project'
 import {
   Card,
   CardContent,
@@ -23,9 +19,7 @@ import { Plus, Sprout, Beef } from 'lucide-react'
 const ProjectsPage = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const projects = useAppSelector(selectProjects)
-  const isLoading = useAppSelector(selectProjectLoading)
-  const error = useAppSelector(selectProjectError)
+  const { projects, isLoading, error } = useAppSelector(selectProjects)
 
   useEffect(() => {
     dispatch(getAllProjects())
@@ -43,7 +37,7 @@ const ProjectsPage = () => {
   )
 
   const projectCards = useMemo(() => {
-    return projects.map((project) => (
+    return projects.results.map((project) => (
       <Card
         key={project.id}
         className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -118,7 +112,7 @@ const ProjectsPage = () => {
         </Button>
       </div>
 
-      {projects.length === 0 ? (
+      {projects.results.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">No projects yet</p>
           <Button onClick={handleCreateProject}>
