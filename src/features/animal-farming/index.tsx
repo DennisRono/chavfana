@@ -34,7 +34,7 @@ import type {
   FarmingType,
 } from '@/types/animal-farming'
 import { useAppDispatch } from '@/store/hooks'
-import { createProject } from '@/store/actions/create-project'
+import { createProject } from '@/store/actions/project'
 import type { AnimalKeepingProject } from '@/types/project'
 import { useUserLocation } from '@/hooks/use-user-location'
 
