@@ -55,126 +55,9 @@ interface ProjectViewProps {
 
 export default function ProjectView({ projectId }: ProjectViewProps) {
   const dispatch = useAppDispatch()
-  const [project1, setProject] = useState<ProjectResponse | null>(null)
+  const [project, setProject] = useState<ProjectResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  //   const [error, setError] = useState<string | null>(null)
   const error = null
-  const project: ProjectResponse = {
-    id: '1b2c3d4e-5678-90ab-cdef-1234567890ab',
-    name: 'Dairy Expansion Project',
-    created_date: '2025-09-30',
-    user: '9f8e7d6c-5432-10ab-cdef-9876543210ff',
-    soil: {
-      type: 'Loamy',
-      nitrogen: 12,
-      phosphorous: 8,
-      potassium: 15,
-      soil_ph: 6.5,
-    },
-    location: {
-      city: 'Kampala',
-      country: 'UG',
-      coordinate: '0.3476, 32.5825',
-    },
-    status: 'Active',
-    animal_group: [
-      {
-        type: 'Group',
-        id: 'group-001',
-        group_name: 'Dairy Cattle Group A',
-        project: '1b2c3d4e-5678-90ab-cdef-1234567890ab',
-        housing: 'BARN',
-        animals: {
-          id: 'animal-group-001',
-          breed: 'Friesian',
-          name: 'Cattle Herd',
-          gender: 'FEMALE',
-          notes: 'High milk yield group',
-          type: 'CATTLE',
-          created_at: '2025-09-30T15:11:43.199Z',
-          group: 'group-001',
-          health_status: [
-            {
-              id: 'hs-001',
-              status: 'HEALTHY',
-              created_at: '2025-09-30T15:11:43.199Z',
-              updated_at: '2025-09-30T15:11:43.199Z',
-              animal: 'animal-group-001',
-            },
-          ],
-          starting_number: 45,
-          average_weight: 550,
-          average_age: 4,
-          processed: [
-            {
-              id: 'proc-001',
-              date: '2025-09-25',
-              type: 'DEATH',
-              number_of_animal: 1,
-              animal: 'animal-group-001',
-            },
-          ],
-          harvests: [
-            {
-              id: 'harv-001',
-              product: 'Milk',
-              amount: 300,
-              unit: 'LITER',
-              harvest_notes: 'Morning milking',
-              date: '2025-09-29',
-              animal: 'animal-group-001',
-            },
-          ],
-        },
-        group_created_date: '2025-09-01',
-      },
-      {
-        type: 'Individual',
-        id: 'ind-001',
-        group_name: 'Tagged Poultry',
-        project: '1b2c3d4e-5678-90ab-cdef-1234567890ab',
-        housing: 'COOP',
-        animals: {
-          id: 'chicken-001',
-          breed: 'Rhode Island Red',
-          name: 'Hen 101',
-          gender: 'FEMALE',
-          notes: 'Good egg layer',
-          type: 'CHICKEN',
-          created_at: '2025-09-15T09:00:00.000Z',
-          group: 'ind-001',
-          health_status: [
-            {
-              id: 'hs-002',
-              status: 'HEALTHY',
-              created_at: '2025-09-15T09:00:00.000Z',
-              updated_at: '2025-09-30T09:00:00.000Z',
-              animal: 'chicken-001',
-            },
-          ],
-          arrival_date: '2025-09-10',
-          birthday: '2025-05-01',
-          age: 0,
-          weight: 2,
-          tag: 'CH-101',
-          harvests: [
-            {
-              id: 'harv-002',
-              product: 'Egg',
-              amount: 1,
-              unit: 'UNIT',
-              harvest_notes: 'Daily egg collection',
-              date: '2025-09-29',
-              animal: 'chicken-001',
-            },
-          ],
-        },
-        group_created_date: '2025-09-10',
-      },
-    ],
-    is_active: true,
-    created_at: '2025-09-30T15:11:43.199Z',
-  }
 
   const [deleteProjectDialog, setDeleteProjectDialog] = useState(false)
   const [deleteGroupDialog, setDeleteGroupDialog] = useState<string | null>(
@@ -256,6 +139,21 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
     }
   }
 
+  const formatCoordinate = (coordinate: any): string => {
+    if (!coordinate) return ''
+    if (typeof coordinate === 'string') return coordinate
+    if (
+      typeof coordinate === 'object' &&
+      'latitude' in coordinate &&
+      'longitude' in coordinate
+    ) {
+      return `${coordinate.latitude.toFixed(6)}, ${coordinate.longitude.toFixed(
+        6
+      )}`
+    }
+    return ''
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6">
@@ -284,8 +182,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
     )
   }
 
-  const isAnimalProject =
-    project.animal_group && project.animal_group.length > 0
+  const isAnimalProject = project.type === 'AnimalProject'
   const projectType = isAnimalProject ? 'Animal Farming' : 'Plant Farming'
 
   return (
@@ -379,7 +276,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                 </p>
                 {project.location.coordinate && (
                   <p className="mt-1 font-mono text-xs text-muted-foreground">
-                    {project.location.coordinate}
+                    {formatCoordinate(project.location.coordinate)}
                   </p>
                 )}
               </div>
@@ -427,6 +324,20 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                   </div>
                 </>
               )}
+              {!isAnimalProject &&
+                project.total_project_planted_area_size !== undefined && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Total Planted Area
+                      </p>
+                      <p className="mt-1 text-sm text-foreground">
+                        {project.total_project_planted_area_size} acres
+                      </p>
+                    </div>
+                  </>
+                )}
             </CardContent>
           </Card>
 
@@ -451,7 +362,8 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {project.animal_group.length === 0 ? (
+                  {!project.animal_group ||
+                  project.animal_group.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <Beef className="mb-4 h-12 w-12 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground">
@@ -667,21 +579,169 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <Sprout className="mb-4 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      No planting events yet
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4 bg-transparent"
-                      onClick={() => setPlantingEventDialog({ open: true })}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create First Event
-                    </Button>
-                  </div>
+                  {!project.planting_events ||
+                  project.planting_events.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <Sprout className="mb-4 h-12 w-12 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        No planting events yet
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 bg-transparent"
+                        onClick={() => setPlantingEventDialog({ open: true })}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create First Event
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {project.planting_events.map((event) => (
+                        <Card
+                          key={event.id}
+                          className="border-border bg-primary/20"
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold text-foreground">
+                                    {event.name}
+                                  </h4>
+                                  <Badge variant="outline" className="text-xs">
+                                    {event.stage}
+                                  </Badge>
+                                </div>
+                                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Planting Date:{' '}
+                                    </span>
+                                    <span className="text-foreground">
+                                      {new Date(
+                                        event.planting_date
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      End Date:{' '}
+                                    </span>
+                                    <span className="text-foreground">
+                                      {new Date(
+                                        event.end_date
+                                      ).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Area:{' '}
+                                    </span>
+                                    <span className="text-foreground">
+                                      {event.area_size}{' '}
+                                      {event.area_size_unit.toLowerCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Type:{' '}
+                                    </span>
+                                    <span className="text-foreground">
+                                      {event.type}
+                                    </span>
+                                  </div>
+                                </div>
+                                {event.notes && (
+                                  <div className="mt-2">
+                                    <p className="text-xs text-muted-foreground">
+                                      Notes:
+                                    </p>
+                                    <p className="text-sm text-foreground">
+                                      {event.notes}
+                                    </p>
+                                  </div>
+                                )}
+                                {event.species && event.species.length > 0 && (
+                                  <div className="mt-2 pt-2 border-t border-border">
+                                    <p className="text-xs text-muted-foreground mb-2">
+                                      Species Planted
+                                    </p>
+                                    <div className="space-y-2">
+                                      {event.species.map((sp) => (
+                                        <div
+                                          key={sp.id}
+                                          className="flex items-center justify-between text-sm bg-card/50 p-2 rounded"
+                                        >
+                                          <div>
+                                            <p className="font-medium text-foreground">
+                                              {sp.species.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                              {sp.species.variety} •{' '}
+                                              {sp.species.type}
+                                            </p>
+                                          </div>
+                                          <Badge
+                                            variant="secondary"
+                                            className="text-xs"
+                                          >
+                                            {sp.amount} {sp.unit.toLowerCase()}
+                                          </Badge>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      (window.location.href = `/projects/${projectId}/planting-events/${event.id}`)
+                                    }
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      setPlantingEventDialog({
+                                        open: true,
+                                        eventId: event.id,
+                                      })
+                                    }
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit Event
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() =>
+                                      setDeleteEventDialog(event.id)
+                                    }
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Event
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

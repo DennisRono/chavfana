@@ -1,4 +1,4 @@
-import { AnimalProjectForm } from "@/schemas/animal-farming"
+import { AnimalProjectForm } from '@/schemas/animal-farming'
 
 export interface Location {
   country: string
@@ -112,13 +112,17 @@ export interface PlantingProject extends BaseProject {
   }
 }
 
-export type ProjectData = AnimalKeepingProject | PlantingProject | AnimalProjectForm
+export type ProjectData =
+  | AnimalKeepingProject
+  | PlantingProject
+  | AnimalProjectForm
 
 export interface ProjectResponse {
   id: string
   name: string
   created_date: string
   user: string
+  type: 'PlantingProject' | 'AnimalProject'
   soil: {
     type: string
     nitrogen: number
@@ -129,10 +133,13 @@ export interface ProjectResponse {
   location: {
     city: string
     country: string
-    coordinate: string
+    coordinate: {
+      latitude: number
+      longitude: number
+    }
   }
   status: string
-  animal_group: {
+  animal_group?: {
     type: 'Group' | 'Individual'
     id: string
     group_name: string
@@ -182,8 +189,38 @@ export interface ProjectResponse {
     }
     group_created_date: string
   }[]
+  planting_events?: {
+    id: string
+    project: string
+    name: string
+    planting_date: string
+    area_size: number
+    area_size_unit: string
+    end_date: string
+    notes: string
+    stage: string
+    type: string
+    species: {
+      id: string
+      species: {
+        id: string
+        type: string
+        variety: string
+        name: string
+        bloom_szn: string
+        notes: string
+        harvests: any[]
+        diseases: any[]
+        pests: any[]
+      }
+      amount: string
+      unit: string
+    }[]
+    fertilities: any[]
+  }[]
   is_active: boolean
   created_at: string
+  total_project_planted_area_size?: number
 }
 
 export interface ProjectSearchResponse {

@@ -146,7 +146,7 @@ const ProjectsList = ({
                 <Badge className={getStatusColor(project.status)}>
                   {project.status}
                 </Badge>
-                <Link href={`/project/${project.slug}`} className="flex gap-2">
+                <Link href={`/project/${project.id}`} className="flex gap-2">
                   <Button size="sm" variant="outline">
                     <Eye className="h-4 w-4 mr-2" />
                     <span>View Details</span>

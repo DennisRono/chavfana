@@ -7,8 +7,9 @@ const ProjectView = dynamic(() => import('@/features/project/index'), {
   loading: () => <Loader />,
 })
 
-const ProjectPage = () => {
-  return <ProjectView projectId="wheat-field-a" />
+const ProjectPage = ({ params }: { params: { id: string } }) => {
+  const projectId = params.id
+  return <ProjectView projectId={projectId} />
 }
 
 export default ProjectPage
