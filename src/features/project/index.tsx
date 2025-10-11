@@ -48,6 +48,7 @@ import { deleteAnimalGroup } from '@/store/actions/animal-group'
 import { getProjectById } from '@/store/actions/project'
 import { deletePlantingEvent } from '@/store/actions/planting-event'
 import { toast } from 'sonner'
+import { AnimalDetailsDialog } from './components/animal-details-dialog'
 
 interface ProjectViewProps {
   projectId: string
@@ -75,6 +76,11 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
     eventId?: string
   }>({ open: false })
   const [editProjectDialog, setEditProjectDialog] = useState(false)
+  const [animalDetailsDialog, setAnimalDetailsDialog] = useState<{
+    open: boolean
+    groupId?: string
+    animalId?: string
+  }>({ open: false })
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -141,7 +147,6 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
 
   const formatCoordinate = (coordinate: any): string => {
     if (!coordinate) return ''
-    if (typeof coordinate === 'string') return coordinate
     if (
       typeof coordinate === 'object' &&
       'latitude' in coordinate &&
@@ -152,6 +157,14 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
       )}`
     }
     return ''
+  }
+
+  const getHealthStatus = (healthStatus: any): string => {
+    if (typeof healthStatus === 'string') return healthStatus
+    if (Array.isArray(healthStatus) && healthStatus.length > 0) {
+      return healthStatus[0].status
+    }
+    return 'Unknown'
   }
 
   if (loading) {
@@ -182,7 +195,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
     )
   }
 
-  const isAnimalProject = project.type === 'AnimalProject'
+  const isAnimalProject = project.type === 'AnimalKeepingProject'
   const projectType = isAnimalProject ? 'Animal Farming' : 'Plant Farming'
 
   return (
@@ -338,6 +351,20 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                     </div>
                   </>
                 )}
+              {isAnimalProject &&
+                project.total_project_animal !== undefined && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Total Animals
+                      </p>
+                      <p className="mt-1 text-sm text-foreground">
+                        {project.total_project_animal}
+                      </p>
+                    </div>
+                  </>
+                )}
             </CardContent>
           </Card>
 
@@ -381,178 +408,210 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {project.animal_group.map((group) => (
-                        <Card
-                          key={group.id}
-                          className="border-border bg-primary/20"
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold text-foreground">
-                                    {group.group_name}
-                                  </h4>
-                                  <Badge variant="outline" className="text-xs">
-                                    {group.type}
-                                  </Badge>
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs"
-                                  >
-                                    {group.housing}
-                                  </Badge>
-                                </div>
-                                <div className="grid gap-2 text-sm sm:grid-cols-2">
-                                  {group.type === 'Group' &&
-                                    group.animals &&
-                                    'starting_number' in group.animals && (
-                                      <>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Count:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.starting_number}
-                                          </span>
+                      {project.animal_group.map((group) => {
+                        const animal = group.animals
+                        return (
+                          <Card
+                            key={group.id}
+                            className="border-border bg-primary/20"
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-semibold text-foreground">
+                                      {group.group_name}
+                                    </h4>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {group.type}
+                                    </Badge>
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {group.housing}
+                                    </Badge>
+                                  </div>
+                                  <div className="grid gap-2 text-sm sm:grid-cols-2">
+                                    {group.type === 'Group' &&
+                                      animal.starting_number !== undefined && (
+                                        <>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Count:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.starting_number}
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Avg Weight:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.average_weight} kg
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Avg Age:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.average_age} days
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Health:{' '}
+                                            </span>
+                                            <span className="text-success">
+                                              {getHealthStatus(
+                                                animal.health_status
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                    {group.type === 'Individual' &&
+                                      animal.tag !== undefined && (
+                                        <>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Name:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.name || 'N/A'}
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Breed:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.breed || 'N/A'}
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Tag:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.tag}
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Gender:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.gender || 'N/A'}
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Weight:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.weight} kg
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Age:{' '}
+                                            </span>
+                                            <span className="text-foreground">
+                                              {animal.age} days
+                                            </span>
+                                          </div>
+                                          <div>
+                                            <span className="text-muted-foreground">
+                                              Health:{' '}
+                                            </span>
+                                            <span className="text-success">
+                                              {getHealthStatus(
+                                                animal.health_status
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                  </div>
+                                  {animal.harvests &&
+                                    animal.harvests.length > 0 && (
+                                      <div className="mt-2 pt-2 border-t border-border">
+                                        <p className="text-xs text-muted-foreground mb-1">
+                                          Recent Harvests
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {animal.harvests
+                                            .slice(0, 3)
+                                            .map((harvest) => (
+                                              <Badge
+                                                key={harvest.id}
+                                                variant="outline"
+                                                className="text-xs"
+                                              >
+                                                {harvest.product}:{' '}
+                                                {harvest.amount} {harvest.unit}
+                                              </Badge>
+                                            ))}
                                         </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Avg Weight:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.average_weight} kg
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Avg Age:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.average_age} days
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Health:{' '}
-                                          </span>
-                                          <span className="text-success">
-                                            {group.animals.health_status[0]
-                                              ?.status || 'Unknown'}
-                                          </span>
-                                        </div>
-                                      </>
-                                    )}
-                                  {group.type === 'Individual' &&
-                                    group.animals &&
-                                    'tag' in group.animals && (
-                                      <>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Tag:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.tag}
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Weight:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.weight} kg
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Age:{' '}
-                                          </span>
-                                          <span className="text-foreground">
-                                            {group.animals.age} days
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Health:{' '}
-                                          </span>
-                                          <span className="text-success">
-                                            {group.animals.health_status[0]
-                                              ?.status || 'Unknown'}
-                                          </span>
-                                        </div>
-                                      </>
-                                    )}
-                                </div>
-                                {group.animals &&
-                                  'harvests' in group.animals &&
-                                  group.animals.harvests &&
-                                  group.animals.harvests.length > 0 && (
-                                    <div className="mt-2 pt-2 border-t border-border">
-                                      <p className="text-xs text-muted-foreground mb-1">
-                                        Recent Harvests
-                                      </p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {group.animals.harvests
-                                          .slice(0, 3)
-                                          .map((harvest) => (
-                                            <Badge
-                                              key={harvest.id}
-                                              variant="outline"
-                                              className="text-xs"
-                                            >
-                                              {harvest.product}:{' '}
-                                              {harvest.amount} {harvest.unit}
-                                            </Badge>
-                                          ))}
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
+                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAnimalDetailsDialog({
+                                          open: true,
+                                          groupId: group.id,
+                                          animalId: animal.id,
+                                        })
+                                      }
+                                    >
+                                      <Eye className="mr-2 h-4 w-4" />
+                                      View Details
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAnimalGroupDialog({
+                                          open: true,
+                                          groupId: group.id,
+                                        })
+                                      }
+                                    >
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit Group
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onClick={() =>
+                                        setDeleteGroupDialog(group.id)
+                                      }
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete Group
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      (window.location.href = `/projects/${projectId}/animal-groups/${group.id}`)
-                                    }
-                                  >
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      setAnimalGroupDialog({
-                                        open: true,
-                                        groupId: group.id,
-                                      })
-                                    }
-                                  >
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit Group
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() =>
-                                      setDeleteGroupDialog(group.id)
-                                    }
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete Group
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -708,14 +767,6 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem
                                     onClick={() =>
-                                      (window.location.href = `/projects/${projectId}/planting-events/${event.id}`)
-                                    }
-                                  >
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View Details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() =>
                                       setPlantingEventDialog({
                                         open: true,
                                         eventId: event.id,
@@ -808,6 +859,15 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
         onOpenChange={(open) => setPlantingEventDialog({ open })}
         projectId={projectId}
         eventId={plantingEventDialog.eventId}
+        onSuccess={handleRefreshProject}
+      />
+
+      <AnimalDetailsDialog
+        open={animalDetailsDialog.open}
+        onOpenChange={(open) => setAnimalDetailsDialog({ open })}
+        projectId={projectId}
+        groupId={animalDetailsDialog.groupId}
+        animalId={animalDetailsDialog.animalId}
         onSuccess={handleRefreshProject}
       />
 
