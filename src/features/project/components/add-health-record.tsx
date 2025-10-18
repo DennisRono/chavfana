@@ -66,7 +66,7 @@ const AddHealthRecord = ({ open, onOpenChange, project, onSuccess }: AddHealthRe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle>Add Health Record</DialogTitle>
           <DialogDescription>Record a health status update for an animal</DialogDescription>

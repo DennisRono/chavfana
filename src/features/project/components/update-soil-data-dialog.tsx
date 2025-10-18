@@ -65,7 +65,7 @@ const UpdateSoilData = ({ open, onOpenChange, project, onSuccess }: UpdateSoilDa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle>Update Soil Data</DialogTitle>
           <DialogDescription>Update soil composition and pH information for your project</DialogDescription>

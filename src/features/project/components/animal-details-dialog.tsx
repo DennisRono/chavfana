@@ -68,7 +68,7 @@ export function AnimalDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] !min-w-[60vw] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {animal.name || 'Animal Details'}

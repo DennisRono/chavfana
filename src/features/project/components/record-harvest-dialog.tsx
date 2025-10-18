@@ -76,7 +76,7 @@ const RecordHarvest = ({ open, onOpenChange, project, onSuccess }: RecordHarvest
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle>Record Harvest</DialogTitle>
           <DialogDescription>Log a harvest event for your planting project</DialogDescription>

@@ -76,7 +76,7 @@ const LogFeeding = ({ open, onOpenChange, project, onSuccess }: LogFeedingProps)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle>Log Feeding</DialogTitle>
           <DialogDescription>Record a feeding event for your animals</DialogDescription>
