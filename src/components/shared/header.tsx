@@ -28,24 +28,26 @@ import { useAppDispatch } from '@/store/hooks'
 import { logout } from '@/store/actions/auth'
 import { useSelector } from 'react-redux'
 import { selectAuth } from '@/store/selectors/auth'
+import { setSearchTerm, clearSearchTerm } from '@/store/slices/search-slice'
+import { selectSearch } from '@/store/selectors/search'
 
 interface HeaderProps {
   onSearch?: (query: string) => void
 }
 
 const Header = ({ onSearch }: HeaderProps) => {
-  const [searchQuery, setSearchQuery] = useState('')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [notificationCount] = useState(3)
 
   const { user, isAuthenticated, isLoading, error } = useSelector(selectAuth)
+  const { search_term } = useSelector(selectSearch)
 
   const dispatch = useAppDispatch()
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
-    setSearchQuery(query)
+    dispatch(setSearchTerm(query))
     onSearch?.(query)
   }
 
@@ -103,14 +105,14 @@ const Header = ({ onSearch }: HeaderProps) => {
 
             <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
               <div
-                className={`relative w-full transition-all duration-200 ${
+                className={`relative w-full transition-all duration-200 border-[#242424] border-2 rounded-md ${
                   isSearchFocused ? 'scale-105' : ''
                 }`}
               >
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Search projects, livestock, crops, records..."
-                  value={searchQuery}
+                  value={search_term}
                   onChange={handleSearch}
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
@@ -187,7 +189,9 @@ const Header = ({ onSearch }: HeaderProps) => {
                       <User className="h-4 w-4 text-primary-foreground" />
                     </div>
                     <div className="hidden lg:block text-left">
-                      <p className="text-sm font-medium">{user?.full_name||user?.email}</p>
+                      <p className="text-sm font-medium">
+                        {user?.full_name || user?.email}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Premium Account
                       </p>
@@ -258,7 +262,7 @@ const Header = ({ onSearch }: HeaderProps) => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search projects, livestock, crops..."
-                value={searchQuery}
+                value={search_term}
                 onChange={handleSearch}
                 className="pl-10 bg-secondary/50 border-border/50"
               />

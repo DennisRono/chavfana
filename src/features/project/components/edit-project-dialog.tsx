@@ -1,8 +1,10 @@
 'use client'
 
 import type React from 'react'
-
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm, type SubmitHandler } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Dialog,
   DialogContent,
@@ -24,6 +26,41 @@ import {
 import { useAppDispatch } from '@/store/hooks'
 import { toast } from 'sonner'
 import type { ProjectResponse } from '@/types/project'
+import africanCountries from '@/data/countries.json'
+
+const soilSchema = z
+  .object({
+    type: z.string().optional(),
+    nitrogen: z
+      .union([z.string(), z.number()])
+      .transform((v) => (v === '' ? undefined : Number(v)))
+      .optional(),
+    phosphorous: z
+      .union([z.string(), z.number()])
+      .transform((v) => (v === '' ? undefined : Number(v)))
+      .optional(),
+    potassium: z
+      .union([z.string(), z.number()])
+      .transform((v) => (v === '' ? undefined : Number(v)))
+      .optional(),
+    soil_ph: z
+      .union([z.string(), z.number()])
+      .transform((v) => (v === '' ? undefined : Number(v)))
+      .optional(),
+  })
+  .optional()
+
+const projectSchema = z.object({
+  name: z.string().min(1),
+  status: z.enum(['Planning', 'Active', 'Completed', 'Archived']),
+  location: z.object({
+    country: z.string().min(1),
+    city: z.string().min(1),
+  }),
+  soil: soilSchema,
+})
+
+type ProjectFormValues = z.infer<typeof projectSchema>
 
 interface EditProjectDialogProps {
   open: boolean
@@ -40,56 +77,53 @@ export function EditProjectDialog({
 }: EditProjectDialogProps) {
   const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    status: '',
-    city: '',
-    country: '',
-    soil_type: '',
-    nitrogen: '',
-    phosphorous: '',
-    potassium: '',
-    soil_ph: '',
+
+  const form = useForm<any>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      name: '',
+      status: 'Planning',
+      location: { country: '', city: '' },
+      soil: project.type === 'PlantingProject' ? {} : undefined,
+    },
   })
 
   useEffect(() => {
     if (open && project) {
-      setFormData({
-        name: project.name,
-        status: project.status,
-        city: project.location.city,
-        country: project.location.country,
-        soil_type: project.soil?.type || '',
-        nitrogen: project.soil?.nitrogen.toString() || '',
-        phosphorous: project.soil?.phosphorous.toString() || '',
-        potassium: project.soil?.potassium.toString() || '',
-        soil_ph: project.soil?.soil_ph.toString() || '',
+      form.reset({
+        name: project.name ?? '',
+        status:
+          (project.status as
+            | 'Planning'
+            | 'Active'
+            | 'Completed'
+            | 'Archived') || 'Planning',
+        location: {
+          city: project.location?.city ?? '',
+          country: project.location?.country ?? '',
+        },
+        soil:
+          project.type === 'PlantingProject'
+            ? {
+                type: project.soil?.type ?? '',
+                nitrogen: project.soil?.nitrogen ?? undefined,
+                phosphorous: project.soil?.phosphorous ?? undefined,
+                potassium: project.soil?.potassium ?? undefined,
+                soil_ph: project.soil?.soil_ph ?? undefined,
+              }
+            : undefined,
       })
     }
-  }, [open, project])
+  }, [open, project, form])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data) => {
     setLoading(true)
-
     try {
-      const payload: any = {
-        name: formData.name,
-        status: formData.status,
-        location: {
-          city: formData.city,
-          country: formData.country,
-        },
-      }
-
-      if (formData.soil_type) {
-        payload.soil = {
-          type: formData.soil_type,
-          nitrogen: Number.parseFloat(formData.nitrogen),
-          phosphorous: Number.parseFloat(formData.phosphorous),
-          potassium: Number.parseFloat(formData.potassium),
-          soil_ph: Number.parseFloat(formData.soil_ph),
-        }
+      const payload: ProjectFormValues = {
+        name: data.name,
+        status: data.status,
+        location: data.location,
+        soil: project.type === 'PlantingProject' ? data.soil : undefined,
       }
 
       // await dispatch(updateProject({ projectId: project.id, data: payload })).unwrap()
@@ -105,6 +139,10 @@ export function EditProjectDialog({
     }
   }
 
+  const selectedCountry = form.watch('location.country')
+  const availableCities =
+    africanCountries.find((c) => c.code === selectedCountry)?.cities || []
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] !min-w-[60vw] overflow-y-auto">
@@ -112,75 +150,87 @@ export function EditProjectDialog({
           <DialogTitle>Edit Project</DialogTitle>
           <DialogDescription>Update your project details</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+          noValidate
+        >
           <div className="space-y-2">
             <Label htmlFor="name">Project Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              required
-            />
+            <Input id="name" {...form.register('name')} required />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+          <div className="flex gap-x-4">
+            <div className="space-y-2 flex-1">
+              <Label>Status</Label>
               <Select
-                value={formData.status}
+                value={form.watch('status')}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, status: value })
+                  form.setValue(
+                    'status',
+                    value as 'Planning' | 'Active' | 'Completed' | 'Archived'
+                  )
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) =>
-                  setFormData({ ...formData, city: e.target.value })
-                }
-                required
-              />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="country">Country</Label>
-            <Input
-              id="country"
-              value={formData.country}
-              onChange={(e) =>
-                setFormData({ ...formData, country: e.target.value })
-              }
-              required
-            />
+            <div className="space-y-2 flex-1">
+              <Label>Country</Label>
+              <Select
+                value={form.watch('location.country')}
+                onValueChange={(value) =>
+                  form.setValue('location.country', value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {africanCountries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 flex-1">
+              <Label>City</Label>
+              <Select
+                value={form.watch('location.city')}
+                onValueChange={(value) => form.setValue('location.city', value)}
+                disabled={!availableCities.length}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {project.type === 'PlantingProject' && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="soil_type">Soil Type</Label>
-                <Input
-                  id="soil_type"
-                  value={formData.soil_type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, soil_type: e.target.value })
-                  }
-                />
+                <Input id="soil_type" {...form.register('soil.type')} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -190,10 +240,7 @@ export function EditProjectDialog({
                     id="nitrogen"
                     type="number"
                     step="0.01"
-                    value={formData.nitrogen}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nitrogen: e.target.value })
-                    }
+                    {...form.register('soil.nitrogen')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -202,10 +249,7 @@ export function EditProjectDialog({
                     id="phosphorous"
                     type="number"
                     step="0.01"
-                    value={formData.phosphorous}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phosphorous: e.target.value })
-                    }
+                    {...form.register('soil.phosphorous')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -214,10 +258,7 @@ export function EditProjectDialog({
                     id="potassium"
                     type="number"
                     step="0.01"
-                    value={formData.potassium}
-                    onChange={(e) =>
-                      setFormData({ ...formData, potassium: e.target.value })
-                    }
+                    {...form.register('soil.potassium')}
                   />
                 </div>
                 <div className="space-y-2">
@@ -226,10 +267,7 @@ export function EditProjectDialog({
                     id="soil_ph"
                     type="number"
                     step="0.1"
-                    value={formData.soil_ph}
-                    onChange={(e) =>
-                      setFormData({ ...formData, soil_ph: e.target.value })
-                    }
+                    {...form.register('soil.soil_ph')}
                   />
                 </div>
               </div>

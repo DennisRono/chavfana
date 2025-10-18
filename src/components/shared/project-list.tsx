@@ -11,6 +11,8 @@ import { useAppDispatch } from '@/store/hooks'
 import { getAllProjects, searchProjects } from '@/store/actions/project'
 import { debounce } from 'lodash'
 import { ProjectResponse } from '@/types/project'
+import { useSelector } from 'react-redux'
+import { selectSearch } from '@/store/selectors/search'
 
 interface ProjectsListProps {
   searchQuery?: string
@@ -39,30 +41,30 @@ const ProjectsList = ({
   isLoading,
   error,
 }: ProjectsListProps) => {
-  const [searchTerm, setSearchTerm] = useState('')
+  const { search_term } = useSelector(selectSearch)
   const dispatch = useAppDispatch()
 
   const debouncedSearch = useCallback(
     debounce((term: string) => {
-      dispatch(searchProjects({search: term, page: 1}))
+      dispatch(searchProjects({ search: term, page: 1 }))
     }, 500),
     [dispatch]
   )
 
   useEffect(() => {
-    if (searchTerm?.trim()) {
-      debouncedSearch(searchTerm)
+    if (search_term?.trim()) {
+      debouncedSearch(search_term)
     }
     return () => {
       debouncedSearch.cancel()
     }
-  }, [searchTerm, debouncedSearch])
+  }, [search_term, debouncedSearch])
 
   useEffect(() => {
     dispatch(getAllProjects())
   }, [dispatch])
 
-  const activeSearchTerm = searchQuery || searchTerm
+  const activeSearchTerm = searchQuery || search_term
   const filteredProjects =
     apiProjects?.results?.filter(
       (project: any) =>
@@ -90,15 +92,6 @@ const ProjectsList = ({
       <CardHeader>
         <div className="flex items-center justify-between mb-4">
           <CardTitle>Farm Projects</CardTitle>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search projects..."
-            value={searchQuery || searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

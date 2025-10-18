@@ -357,59 +357,6 @@ export default function AnimalFarmingForm() {
             </CardContent>
           </Card>
 
-          {/* <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
-              <CardTitle className="text-xl">
-                Soil Information (Optional)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Phosphorous</Label>
-                  <Input
-                    type="number"
-                    placeholder="40"
-                    defaultValue={0}
-                    {...form.register('soil.phosphorous', {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Potassium</Label>
-                  <Input
-                    type="number"
-                    placeholder="40"
-                    defaultValue={0}
-                    {...form.register('soil.potassium', {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Nitrogen</Label>
-                  <Input
-                    type="number"
-                    placeholder="40"
-                    defaultValue={0}
-                    {...form.register('soil.nitrogen', { valueAsNumber: true })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Soil pH</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    placeholder="5"
-                    defaultValue={0}
-                    {...form.register('soil.soil_ph', { valueAsNumber: true })}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
-
           <Tabs
             value={formType}
             onValueChange={(value) => {

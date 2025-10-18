@@ -9,6 +9,7 @@ import projectReducer from "@/store/slices/project-slice"
 import animalReducer from "@/store/slices/animal-slice"
 import plantReducer from "@/store/slices/plant-slice"
 import userReducer from "@/store/slices/user-slice"
+import searchReducer from "@/store/slices/search-slice"
 
 const persistConfig = {
   key: 'root',
@@ -22,6 +23,7 @@ const allReducers = combineReducers({
   animal: animalReducer,
   plant: plantReducer,
   user: userReducer,
+  search: searchReducer,
   [authApi.reducerPath]: authApi.reducer,
 })
 

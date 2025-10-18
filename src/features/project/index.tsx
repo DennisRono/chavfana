@@ -49,6 +49,17 @@ import { getProjectById } from '@/store/actions/project'
 import { deletePlantingEvent } from '@/store/actions/planting-event'
 import { toast } from 'sonner'
 import { AnimalDetailsDialog } from './components/animal-details-dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import AddHealthRecord from './components/add-health-record'
+import LogFeeding from './components/log-feeding'
+import RecordHarvest from './components/record-harvest-dialog'
+import UpdateSoilData from './components/update-soil-data-dialog'
 
 interface ProjectViewProps {
   projectId: string
@@ -59,8 +70,6 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
   const [project, setProject] = useState<ProjectResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const error = null
-
-  const [deleteProjectDialog, setDeleteProjectDialog] = useState(false)
   const [deleteGroupDialog, setDeleteGroupDialog] = useState<string | null>(
     null
   )
@@ -81,6 +90,11 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
     groupId?: string
     animalId?: string
   }>({ open: false })
+
+  const [addHealthRecordDialog, setAddHealthRecordDialog] = useState(false)
+  const [logFeedingDialog, setLogFeedingDialog] = useState(false)
+  const [recordHarvestDialog, setRecordHarvestDialog] = useState(false)
+  const [updateSoilDataDialog, setUpdateSoilDataDialog] = useState(false)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -250,14 +264,16 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Project
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteProjectDialog(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
+              <Select>
+                <SelectTrigger className="w-[120px] !h-8">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -804,34 +820,63 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Record Harvest
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Health Record
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Log Feeding
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start bg-transparent"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Update Soil Data
-                  </Button>
+                  {project.type === 'PlantingProject' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="justify-start bg-transparent"
+                        onClick={() => setRecordHarvestDialog(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Record Harvest
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start bg-transparent"
+                        onClick={() => setUpdateSoilDataDialog(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Update Soil Data
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start bg-transparent"
+                        onClick={() => setAddHealthRecordDialog(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Health Record
+                      </Button>
+                    </>
+                  )}
+
+                  {project.type === 'AnimalKeepingProject' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="justify-start bg-transparent"
+                        onClick={() => setLogFeedingDialog(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Log Feeding
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="justify-start bg-transparent"
+                        onClick={() => setAddHealthRecordDialog(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Health Record
+                      </Button>
+                    </>
+                  )}
+
+                  {!['PlantingProject', 'AnimalKeepingProject'].includes(
+                    project.type
+                  ) && (
+                    <p className="text-sm text-muted-foreground col-span-2">
+                      No quick actions available for this project.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -871,29 +916,30 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
         onSuccess={handleRefreshProject}
       />
 
-      <AlertDialog
-        open={deleteProjectDialog}
-        onOpenChange={setDeleteProjectDialog}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this project? This action cannot
-              be undone and will remove all associated data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteProject}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AddHealthRecord
+        open={addHealthRecordDialog}
+        onOpenChange={setAddHealthRecordDialog}
+        project={project}
+        onSuccess={handleRefreshProject}
+      />
+      <LogFeeding
+        open={logFeedingDialog}
+        onOpenChange={setLogFeedingDialog}
+        project={project}
+        onSuccess={handleRefreshProject}
+      />
+      <RecordHarvest
+        open={recordHarvestDialog}
+        onOpenChange={setRecordHarvestDialog}
+        project={project}
+        onSuccess={handleRefreshProject}
+      />
+      <UpdateSoilData
+        open={updateSoilDataDialog}
+        onOpenChange={setUpdateSoilDataDialog}
+        project={project}
+        onSuccess={handleRefreshProject}
+      />
 
       <AlertDialog
         open={!!deleteGroupDialog}

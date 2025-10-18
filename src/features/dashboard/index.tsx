@@ -18,7 +18,8 @@ import { useAppSelector } from '@/store/hooks'
 import { selectProjects } from '@/store/selectors/project'
 
 const DashboardView = () => {
-  const { projects, isLoading, error, searchResults } = useAppSelector(selectProjects)
+  const { projects, isLoading, error, searchResults } =
+    useAppSelector(selectProjects)
   const [searchQuery, setSearchQuery] = useState('')
 
   const [metrics, setMetrics] = useState({
@@ -42,9 +43,20 @@ const DashboardView = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="Total Projects"
-          value={projects.total_land_under_cultivation}
-          change="+20.1% from last month"
-          changeType="positive"
+          value={projects.count}
+          change={`${
+            projects.current_month_created_project -
+            projects.last_month_created_project
+          } from last month`}
+          changeType={
+            projects.current_month_created_project >
+            projects.last_month_created_project
+              ? 'positive'
+              : projects.current_month_created_project <
+                projects.last_month_created_project
+              ? 'negative'
+              : 'neutral'
+          }
           icon={Wheat}
           subtitle="Plant & Animal Projects"
           variant="gradient"
@@ -52,8 +64,19 @@ const DashboardView = () => {
         <MetricCard
           title="Livestock"
           value={projects.total_animals}
-          change="Total animals"
-          changeType="negative"
+          change={`${
+            projects.current_month_total_animal -
+            projects.last_month_total_animal
+          } change from last month`}
+          changeType={
+            projects.current_month_total_animal >
+            projects.last_month_total_animal
+              ? 'positive'
+              : projects.current_month_total_animal <
+                projects.last_month_total_animal
+              ? 'negative'
+              : 'neutral'
+          }
           icon={Beef}
           subtitle="All livestock groups"
           variant="gradient"
