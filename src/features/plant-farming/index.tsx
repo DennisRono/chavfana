@@ -191,7 +191,7 @@ const PlantingEventForm = () => {
       <main className="container mx-auto px-6 py-8">
         <form onSubmit={onSave}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm !pt-0">
               <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-500 text-white rounded-t-lg py-2">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <MapPin className="h-6 w-6" />
@@ -457,7 +457,7 @@ const PlantingEventForm = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+            <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm !pt-0">
               <CardHeader className="bg-gradient-to-r from-amber-600 to-yellow-500 text-white rounded-t-lg py-2">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <Droplets className="h-6 w-6" />
@@ -549,7 +549,7 @@ const PlantingEventForm = () => {
             </Card>
           </div>
 
-          <Card className="mt-8 shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <Card className="mt-8 shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm !pt-0">
             <CardHeader className="bg-gradient-to-r from-emerald-700 to-teal-500 text-white rounded-t-lg py-2">
               <CardTitle className="text-xl">Planting Event Details</CardTitle>
             </CardHeader>

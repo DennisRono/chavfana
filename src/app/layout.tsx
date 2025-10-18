@@ -126,7 +126,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
-      <body className="">
+      <body className="bg-[url('/particle-lines-futuristic-gradient-background.jpg')] bg-cover bg-center bg-no-repeat bg-fixed min-h-screen">
         <Script
           id="schema-org"
           type="application/ld+json"

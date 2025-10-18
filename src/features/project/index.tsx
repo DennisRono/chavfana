@@ -183,7 +183,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen p-6">
         <div className="mx-auto container space-y-6">
           <Skeleton className="h-12 w-64" />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -198,7 +198,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
 
   if (error || !project) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-destructive">Error</CardTitle>
@@ -213,9 +213,9 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
   const projectType = isAnimalProject ? 'Animal Farming' : 'Plant Farming'
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-card">
-        <div className="mx-auto container px-6 py-8">
+    <div className="min-h-screen">
+      <div className="bg-card mx-6 mt-2 rounded-md">
+        <div className="container px-6 py-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
@@ -279,7 +279,7 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
         </div>
       </div>
 
-      <div className="mx-auto container px-6 py-8">
+      <div className="mx-auto container px-6 py-4">
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">
             <CardHeader>

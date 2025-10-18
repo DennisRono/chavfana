@@ -162,7 +162,7 @@ export default function AnimalFarmingForm() {
         </div>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm !pt-0">
             <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
               <CardTitle className="text-xl">Project Information</CardTitle>
             </CardHeader>
@@ -397,7 +397,7 @@ export default function AnimalFarmingForm() {
 
             <TabsContent value="Group">
               <div className="space-y-4">
-                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm !pt-0">
                   <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
                     <CardTitle className="text-xl">
                       Animal Group Information
