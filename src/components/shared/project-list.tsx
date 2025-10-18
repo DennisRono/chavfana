@@ -28,7 +28,7 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { updateLastTime } from '@/utils/functions'
 import Link from 'next/link'
 import { useAppDispatch } from '@/store/hooks'
@@ -37,7 +37,7 @@ import { useSelector } from 'react-redux'
 import { selectSearch } from '@/store/selectors/search'
 
 interface ProjectsListProps {
-  searchQuery?: string
+  scrollRef: any
   apiProjects: {
     count: number
     next: string | null
@@ -60,7 +60,7 @@ interface ProjectsListProps {
 type SortOption = 'name' | 'date' | 'status'
 
 const ProjectsList = ({
-  searchQuery = '',
+  scrollRef,
   apiProjects,
   isLoading,
   error,
@@ -73,16 +73,14 @@ const ProjectsList = ({
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const itemsPerPage = 12
 
-  const activeSearchTerm = searchQuery || search_term
-
   const processedProjects = useMemo(() => {
     const filtered =
       apiProjects?.results?.filter(
         (project: any) =>
-          project.name.toLowerCase().includes(activeSearchTerm.toLowerCase()) ||
+          project.name.toLowerCase().includes(search_term.toLowerCase()) ||
           project.location?.city
             ?.toLowerCase()
-            .includes(activeSearchTerm.toLowerCase())
+            .includes(search_term.toLowerCase())
       ) || []
 
     const favoriteProjects = filtered.filter((p: any) => favorites.has(p.id))
@@ -106,7 +104,7 @@ const ProjectsList = ({
     }
 
     return [...sortProjects(favoriteProjects), ...sortProjects(regularProjects)]
-  }, [apiProjects?.results, activeSearchTerm, sortBy, favorites])
+  }, [apiProjects?.results, search_term, sortBy, favorites])
 
   const paginatedProjects = useMemo(() => {
     const startIdx = (currentPage - 1) * itemsPerPage
@@ -143,7 +141,11 @@ const ProjectsList = ({
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div
+      className="w-full space-y-6 scroll-mt-20"
+      ref={scrollRef}
+      style={{ scrollBehavior: 'smooth' }}
+    >
       <div className="space-y-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -366,13 +368,12 @@ const ProjectsList = ({
           )}
         </>
       ) : !isLoading && !error ? (
-        /* Empty State */
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12">
           <Wheat className="mb-4 h-12 w-12 text-muted-foreground/50" />
           <h3 className="mb-1 text-lg font-semibold">No projects found</h3>
           <p className="text-sm text-muted-foreground">
-            {activeSearchTerm
-              ? `No projects match "${activeSearchTerm}". Try adjusting your search.`
+            {search_term
+              ? `No projects match "${search_term}". Try adjusting your search.`
               : 'You have no ongoing projects yet. Create one to get started!'}
           </p>
         </div>

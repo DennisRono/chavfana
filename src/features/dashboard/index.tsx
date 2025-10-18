@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   Wheat,
   Beef,
@@ -16,11 +16,13 @@ import ProjectsList from '@/components/shared/project-list'
 import { useRouter } from 'next/navigation'
 import { useAppSelector } from '@/store/hooks'
 import { selectProjects } from '@/store/selectors/project'
+import { useSelector } from 'react-redux'
+import { selectSearch } from '@/store/selectors/search'
 
 const DashboardView = () => {
+  const { search_term } = useSelector(selectSearch)
   const { projects, isLoading, error, searchResults } =
     useAppSelector(selectProjects)
-  const [searchQuery, setSearchQuery] = useState('')
 
   const [metrics, setMetrics] = useState({
     totalCrops: 0,
@@ -29,6 +31,18 @@ const DashboardView = () => {
     revenue: 0,
   })
   const router = useRouter()
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const topOffset = scrollRef.current.offsetTop
+      window.scrollTo({ top: topOffset - 20, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [search_term])
+
   return (
     <main className="container mx-auto px-6 py-8">
       <div className="mb-8">
@@ -147,7 +161,7 @@ const DashboardView = () => {
 
       <div className="mb-8">
         <ProjectsList
-          searchQuery={searchQuery}
+          scrollRef={scrollRef}
           apiProjects={projects}
           isLoading={isLoading}
           error={error}
