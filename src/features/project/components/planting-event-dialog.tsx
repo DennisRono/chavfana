@@ -98,10 +98,10 @@ export function PlantingEventDialog({
       }
 
       if (eventId) {
-        // await dispatch(updatePlantingEvent({ projectId, eventId, data: payload })).unwrap()
+        await dispatch(updatePlantingEvent({ projectId, eventId, data: payload })).unwrap()
         toast('Success', { description: 'Planting event updated successfully' })
       } else {
-        // await dispatch(createPlantingEvent({ projectId, data: payload })).unwrap()
+        await dispatch(createPlantingEvent({ projectId, data: payload })).unwrap()
         toast('Success', { description: 'Planting event created successfully' })
       }
 

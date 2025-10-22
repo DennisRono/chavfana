@@ -10,11 +10,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const createPlantingEvent = createAsyncThunk<
   PlantingEvent,
-  { projectId: string; eventData: PlantingEventData },
+  { projectId: string; data: PlantingEventData },
   { rejectValue: ErrorResponse }
 >(
   'plantingEvent/create',
-  async ({ projectId, eventData }, { getState, rejectWithValue }) => {
+  async ({ projectId, data }, { getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState
       const response = await fetch(
@@ -25,7 +25,7 @@ export const createPlantingEvent = createAsyncThunk<
             'Content-Type': 'application/json',
             Authorization: `Bearer ${state?.auth?.access_token}`,
           },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify(data),
         }
       )
 
@@ -78,11 +78,11 @@ export const getPlantingEventById = createAsyncThunk<
 
 export const updatePlantingEvent = createAsyncThunk<
   PlantingEvent,
-  { projectId: string; eventId: string; eventData: PlantingEventData },
+  { projectId: string; eventId: string; data: PlantingEventData },
   { rejectValue: ErrorResponse }
 >(
   'plantingEvent/update',
-  async ({ projectId, eventId, eventData }, { getState, rejectWithValue }) => {
+  async ({ projectId, eventId, data }, { getState, rejectWithValue }) => {
     try {
       const state = getState() as RootState
       const response = await fetch(
@@ -93,7 +93,7 @@ export const updatePlantingEvent = createAsyncThunk<
             'Content-Type': 'application/json',
             Authorization: `Bearer ${state?.auth?.access_token}`,
           },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify(data),
         }
       )
 

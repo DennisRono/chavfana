@@ -14,10 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ProjectsList from '@/components/shared/project-list'
 import { useRouter } from 'next/navigation'
-import { useAppSelector } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectProjects } from '@/store/selectors/project'
 import { useSelector } from 'react-redux'
 import { selectSearch } from '@/store/selectors/search'
+import { getAllProjects } from '@/store/actions/project'
 
 const DashboardView = () => {
   const { search_term } = useSelector(selectSearch)
@@ -31,8 +32,12 @@ const DashboardView = () => {
     revenue: 0,
   })
   const router = useRouter()
-
   const scrollRef = useRef<HTMLDivElement>(null)
+  const dispatch = useAppDispatch()
+
+  useEffect(()=>{
+    dispatch(getAllProjects()) 
+  }, [])
 
   useEffect(() => {
     if (scrollRef.current) {
