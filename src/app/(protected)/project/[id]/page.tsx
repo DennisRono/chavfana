@@ -7,9 +7,9 @@ const ProjectView = dynamic(() => import('@/features/project/index'), {
   loading: () => <Loader />,
 })
 
-const ProjectPage = ({ params }: { params: { id: string } }) => {
-  const projectId = params.id
-  return <ProjectView projectId={projectId} />
+const ProjectPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params
+  return <ProjectView projectId={id} />
 }
 
 export default ProjectPage
