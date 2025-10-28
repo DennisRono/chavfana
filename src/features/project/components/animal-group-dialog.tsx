@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect, useMemo } from "react"
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,29 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useAppDispatch } from "@/store/hooks"
-import { createAnimalGroup, getAnimalGroupById, updateAnimalGroup } from "@/store/actions/animal-group"
-import { toast } from "sonner"
-import { animalGroupDialogSchema, type AnimalGroupDialogForm } from "@/schemas/animal-group-dialog"
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useAppDispatch } from '@/store/hooks'
+import {
+  createAnimalGroup,
+  getAnimalGroupById,
+  updateAnimalGroup,
+} from '@/store/actions/animal-group'
+import { toast } from 'sonner'
+import {
+  AnimalGroupDialogForm,
+  animalGroupDialogSchema,
+} from '@/schemas/animal-group-dialog'
+import { isRejected } from '@reduxjs/toolkit'
 
 interface AnimalGroupDialogProps {
   open: boolean
@@ -29,91 +42,76 @@ interface AnimalGroupDialogProps {
   onSuccess: () => void
 }
 
-export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSuccess }: AnimalGroupDialogProps) {
+export function AnimalGroupDialog({
+  open,
+  onOpenChange,
+  projectId,
+  groupId,
+  onSuccess,
+}: AnimalGroupDialogProps) {
   const dispatch = useAppDispatch()
 
   const {
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<AnimalGroupDialogForm>({
     resolver: zodResolver(animalGroupDialogSchema),
     defaultValues: {
-      group_name: "",
-      type: "Individual",
-      housing: "BARN",
-      animal: {
-        type: "",
-        breed: "",
-        name: "",
-        gender: "MALE",
-        tag: "",
-        weight: 0,
-        age: 0,
-        arrival_date: "",
-        birthday: "",
-        notes: "",
+      group_name: '',
+      housing: 'BARN',
+      animals: {
+        breed: '',
+        name: '',
+        gender: 'FEMALE',
+        type: '',
+        starting_number: 0,
+        average_weight: 0,
+        average_age: 0,
       },
+      group_created_date: new Date().toISOString().split('T')[0],
     },
   })
-
-  const groupType = watch("type")
-
-  const animalFields = useMemo(() => {
-    if (groupType === "Individual") {
-      return ["tag", "weight", "age"] as const
-    }
-    return ["starting_number", "average_weight", "average_age"] as const
-  }, [groupType])
 
   useEffect(() => {
     if (groupId && open) {
       const fetchGroup = async () => {
         try {
           if (!projectId || !groupId) {
-            toast.error("Error", { description: "Invalid project or group ID" })
+            toast.error('Error', { description: 'Invalid project or group ID' })
             return
           }
 
-          const group = await dispatch(getAnimalGroupById({ projectId, groupId })).unwrap()
+          const group = await dispatch(
+            getAnimalGroupById({ projectId, groupId })
+          ).unwrap()
 
           if (!group) {
-            toast.error("Error", { description: "Group data not found" })
+            toast.error('Error', { description: 'Group data not found' })
             return
           }
 
-          const animals = group?.animals
-          const formData: AnimalGroupDialogForm = {
-            group_name: group?.group_name ?? "",
-            type: (group?.type as "Individual" | "Group") || "Individual",
-            housing: group?.housing ?? "BARN",
-            animal: {
-              type: animals?.type ?? "",
-              breed: animals?.breed ?? "",
-              name: animals?.name ?? "",
-              gender: animals?.gender ?? "MALE",
-              ...(group?.type === "Individual"
-                ? {
-                    tag: animals?.tag ?? "",
-                    weight: animals?.weight ?? 0,
-                    age: animals?.age ?? 0,
-                  }
-                : {
-                    starting_number: animals?.starting_number ?? 0,
-                    average_weight: animals?.average_weight ?? 0,
-                    average_age: animals?.average_age ?? 0,
-                  }),
-              arrival_date: animals?.arrival_date ?? "",
-              birthday: animals?.birthday ?? "",
-              notes: animals?.notes ?? "",
+          reset({
+            group_name: group.group_name ?? '',
+            housing: group.housing ?? 'BARN',
+            animals: {
+              breed: group.animals?.breed ?? '',
+              name: group.animals?.name ?? '',
+              gender: group.animals?.gender ?? 'FEMALE',
+              type: group.animals?.type ?? '',
+              starting_number: group.animals?.starting_number ?? 0,
+              average_weight: group.animals?.average_weight ?? 0,
+              average_age: group.animals?.average_age ?? 0,
             },
-          }
-          reset(formData as any)
+            group_created_date:
+              group.group_created_date ??
+              new Date().toISOString().split('T')[0],
+          })
         } catch (err: any) {
-          const errorMessage = err?.message || err?.detail || "Failed to load group data"
-          toast.error("Error", { description: errorMessage })
+          toast.error('Error', {
+            description: err?.message || 'Failed to load group data',
+          })
         }
       }
       fetchGroup()
@@ -124,43 +122,74 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
 
   const onSubmit = async (data: AnimalGroupDialogForm) => {
     try {
-      if (!projectId || typeof projectId !== "string") {
-        toast.error("Error", { description: "Invalid project ID" })
+      if (!projectId || typeof projectId !== 'string') {
+        toast.error('Error', { description: 'Invalid project ID' })
         return
       }
 
-      if (groupId) {
-        if (typeof groupId !== "string") {
-          toast.error("Error", { description: "Invalid group ID" })
-          return
-        }
+      const payload = {
+        ...data,
+        group_created_date:
+          data.group_created_date || new Date().toISOString().split('T')[0],
+      }
 
-        await dispatch(updateAnimalGroup({ projectId, groupId, data })).unwrap()
-        toast.success("Animal group updated successfully")
+      if (groupId) {
+        await dispatch(updateAnimalGroup({ projectId, groupId, data: payload }))
+          .unwrap()
+          .then((response) => {
+            console.log(response)
+            if (isRejected(response)) {
+              toast.error('Failed to updated Animal Group')
+            } else {
+              toast.success('Animal group updated successfully')
+            }
+          })
+          .catch((error: any) => {
+            console.log(error)
+            toast.error(error.message || 'Failed to updated Animal Group')
+          })
       } else {
-        await dispatch(createAnimalGroup({ projectId, data })).unwrap()
-        toast.success("Animal group created successfully")
+        dispatch(createAnimalGroup({ projectId, data: payload }))
+          .unwrap()
+          .then((response) => {
+            console.log(response)
+            if (isRejected(response)) {
+              toast.error('Failed to Create Animal Group')
+            } else {
+              toast.success('Animal group created successfully')
+            }
+          })
+          .catch((error: any) => {
+            console.log(error)
+            toast.error(error.message || 'Failed to Create Animal Group')
+          })
       }
 
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      const errorMessage = err?.message || err?.detail || "Failed to save animal group"
-      toast.error("Error", { description: errorMessage })
+      toast.error('Error', {
+        description: err?.message || 'Failed to save animal group',
+      })
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <DialogHeader>
-          <DialogTitle>{groupId ? "Edit Animal Group" : "Create Animal Group"}</DialogTitle>
+          <DialogTitle>
+            {groupId ? 'Edit Animal Group' : 'Create Animal Group'}
+          </DialogTitle>
           <DialogDescription>
-            {groupId ? "Update the animal group details" : "Add a new animal group to your project"}
+            {groupId
+              ? 'Update the animal group details'
+              : 'Add a new animal group to your project'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Group Info */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="group_name">Group Name</Label>
@@ -170,29 +199,11 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 render={({ field }) => (
                   <>
                     <Input id="group_name" {...field} disabled={isSubmitting} />
-                    {errors.group_name && <p className="text-sm text-destructive">{errors.group_name.message}</p>}
-                  </>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Individual">Individual</SelectItem>
-                        <SelectItem value="Group">Group</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+                    {errors.group_name && (
+                      <p className="text-sm text-destructive">
+                        {errors.group_name.message}
+                      </p>
+                    )}
                   </>
                 )}
               />
@@ -205,9 +216,13 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select housing" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="BARN">Barn</SelectItem>
@@ -218,37 +233,55 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         <SelectItem value="STABLE">Stable</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.housing && <p className="text-sm text-destructive">{errors.housing.message}</p>}
-                  </>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="animal_type">Animal Type</Label>
-              <Controller
-                name="animal.type"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Input id="animal_type" placeholder="e.g., Cattle, Chicken" {...field} disabled={isSubmitting} />
-                    {errors.animal?.type && <p className="text-sm text-destructive">{errors.animal.type.message}</p>}
+                    {errors.housing && (
+                      <p className="text-sm text-destructive">
+                        {errors.housing.message}
+                      </p>
+                    )}
                   </>
                 )}
               />
             </div>
           </div>
 
+          {/* Animal Info */}
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="type">Animal Type</Label>
+              <Controller
+                name="animals.type"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      id="type"
+                      placeholder="e.g., Cattle, Chicken"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
+                    {errors.animals?.type && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.type.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="breed">Breed</Label>
               <Controller
-                name="animal.breed"
+                name="animals.breed"
                 control={control}
                 render={({ field }) => (
                   <>
                     <Input id="breed" {...field} disabled={isSubmitting} />
-                    {errors.animal?.breed && <p className="text-sm text-destructive">{errors.animal.breed.message}</p>}
+                    {errors.animals?.breed && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.breed.message}
+                      </p>
+                    )}
                   </>
                 )}
               />
@@ -257,12 +290,16 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Controller
-                name="animal.name"
+                name="animals.name"
                 control={control}
                 render={({ field }) => (
                   <>
                     <Input id="name" {...field} disabled={isSubmitting} />
-                    {errors.animal?.name && <p className="text-sm text-destructive">{errors.animal.name.message}</p>}
+                    {errors.animals?.name && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.name.message}
+                      </p>
+                    )}
                   </>
                 )}
               />
@@ -271,244 +308,127 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
               <Controller
-                name="animal.gender"
+                name="animals.gender"
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="MALE">Male</SelectItem>
                         <SelectItem value="FEMALE">Female</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.animal?.gender && (
-                      <p className="text-sm text-destructive">{errors.animal.gender.message}</p>
+                    {errors.animals?.gender && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.gender.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Numeric Fields */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="starting_number">Number of Animals</Label>
+              <Controller
+                name="animals.starting_number"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      id="starting_number"
+                      type="number"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(Number.parseInt(e.target.value) || 0)
+                      }
+                      disabled={isSubmitting}
+                    />
+                    {errors.animals?.starting_number && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.starting_number.message}
+                      </p>
                     )}
                   </>
                 )}
               />
             </div>
 
-            {groupType === "Individual" && (
-              <div className="space-y-2">
-                <Label htmlFor="tag">Tag</Label>
-                <Controller
-                  name="animal.tag"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input id="tag" {...field} disabled={isSubmitting} />
-                      {errors.animal?.tag && <p className="text-sm text-destructive">{errors.animal.tag.message}</p>}
-                    </>
-                  )}
-                />
-              </div>
-            )}
-          </div>
-
-          {groupType === "Individual" ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (kg)</Label>
-                <Controller
-                  name="animal.weight"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        id="weight"
-                        type="number"
-                        step="0.01"
-                        {...field}
-                        disabled={isSubmitting}
-                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
-                      />
-                      {errors.animal?.weight && (
-                        <p className="text-sm text-destructive">{errors.animal.weight.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="age">Age (days)</Label>
-                <Controller
-                  name="animal.age"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        id="age"
-                        type="number"
-                        {...field}
-                        disabled={isSubmitting}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
-                      />
-                      {errors.animal?.age && <p className="text-sm text-destructive">{errors.animal.age.message}</p>}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="arrival_date">Arrival Date</Label>
-                <Controller
-                  name="animal.arrival_date"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input id="arrival_date" type="date" {...field} disabled={isSubmitting} />
-                      {errors.animal?.arrival_date && (
-                        <p className="text-sm text-destructive">{errors.animal.arrival_date.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="birthday">Birthday</Label>
-                <Controller
-                  name="animal.birthday"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input id="birthday" type="date" {...field} disabled={isSubmitting} />
-                      {errors.animal?.birthday && (
-                        <p className="text-sm text-destructive">{errors.animal.birthday.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="average_weight">Average Weight (kg)</Label>
+              <Controller
+                name="animals.average_weight"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      id="average_weight"
+                      type="number"
+                      step="0.01"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(Number.parseFloat(e.target.value) || 0)
+                      }
+                      disabled={isSubmitting}
+                    />
+                    {errors.animals?.average_weight && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.average_weight.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
             </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="starting_number">Number of Animals</Label>
-                <Controller
-                  name="animal.starting_number"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        id="starting_number"
-                        type="number"
-                        {...field}
-                        disabled={isSubmitting}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
-                      />
-                      {errors.animal?.starting_number && (
-                        <p className="text-sm text-destructive">{errors.animal.starting_number.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="average_weight">Avg Weight (kg)</Label>
-                <Controller
-                  name="animal.average_weight"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        id="average_weight"
-                        type="number"
-                        step="0.01"
-                        {...field}
-                        disabled={isSubmitting}
-                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
-                      />
-                      {errors.animal?.average_weight && (
-                        <p className="text-sm text-destructive">{errors.animal.average_weight.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="average_age">Avg Age (days)</Label>
-                <Controller
-                  name="animal.average_age"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        id="average_age"
-                        type="number"
-                        {...field}
-                        disabled={isSubmitting}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
-                      />
-                      {errors.animal?.average_age && (
-                        <p className="text-sm text-destructive">{errors.animal.average_age.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="arrival_date">Arrival Date</Label>
-                <Controller
-                  name="animal.arrival_date"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input id="arrival_date" type="date" {...field} disabled={isSubmitting} />
-                      {errors.animal?.arrival_date && (
-                        <p className="text-sm text-destructive">{errors.animal.arrival_date.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="birthday">Birthday</Label>
-                <Controller
-                  name="animal.birthday"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      <Input id="birthday" type="date" {...field} disabled={isSubmitting} />
-                      {errors.animal?.birthday && (
-                        <p className="text-sm text-destructive">{errors.animal.birthday.message}</p>
-                      )}
-                    </>
-                  )}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="average_age">Average Age (days)</Label>
+              <Controller
+                name="animals.average_age"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input
+                      id="average_age"
+                      type="number"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(Number.parseInt(e.target.value) || 0)
+                      }
+                      disabled={isSubmitting}
+                    />
+                    {errors.animals?.average_age && (
+                      <p className="text-sm text-destructive">
+                        {errors.animals.average_age.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
             </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Controller
-              name="animal.notes"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <Textarea id="notes" rows={3} {...field} disabled={isSubmitting} />
-                  {errors.animal?.notes && <p className="text-sm text-destructive">{errors.animal.notes.message}</p>}
-                </>
-              )}
-            />
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : groupId ? "Update" : "Create"}
+              {isSubmitting ? 'Saving...' : groupId ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </form>
