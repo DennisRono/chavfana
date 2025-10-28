@@ -55,20 +55,36 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
     if (eventId && open) {
       const fetchEvent = async () => {
         try {
+          if (!projectId || typeof projectId !== "string") {
+            toast.error("Error", { description: "Invalid project ID" })
+            return
+          }
+
+          if (!eventId || typeof eventId !== "string") {
+            toast.error("Error", { description: "Invalid event ID" })
+            return
+          }
+
           const event = await dispatch(getPlantingEventById({ projectId, eventId })).unwrap()
 
+          if (!event || typeof event !== "object") {
+            toast.error("Error", { description: "Event data not found" })
+            return
+          }
+
           reset({
-            name: event.name,
-            planting_date: event.planting_date,
-            end_date: event.end_date || "",
-            area_size: event.area_size,
-            area_size_unit: event.area_size_unit,
-            stage: event.stage,
-            type: event.type,
-            notes: event.notes || "",
+            name: event?.name ?? "",
+            planting_date: event?.planting_date ?? "",
+            end_date: event?.end_date ?? "",
+            area_size: event?.area_size ?? 0,
+            area_size_unit: event?.area_size_unit ?? "ACRE",
+            stage: event?.stage ?? "",
+            type: event?.type ?? "",
+            notes: event?.notes ?? "",
           })
         } catch (err: any) {
-          toast.error("Error", { description: "Failed to load event data" })
+          const errorMessage = err?.message || err?.detail || "Failed to load event data"
+          toast.error("Error", { description: errorMessage })
         }
       }
       fetchEvent()
@@ -79,18 +95,49 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
 
   const onSubmit = async (data: PlantingEventDialogForm) => {
     try {
+      if (!projectId || typeof projectId !== "string") {
+        toast.error("Error", { description: "Invalid project ID" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid event data" })
+        return
+      }
+
+      if (!data.name || typeof data.name !== "string") {
+        toast.error("Error", { description: "Please enter event name" })
+        return
+      }
+
+      if (!data.planting_date || typeof data.planting_date !== "string") {
+        toast.error("Error", { description: "Please select planting date" })
+        return
+      }
+
+      if (typeof data.area_size !== "number" || data.area_size <= 0) {
+        toast.error("Error", { description: "Invalid area size" })
+        return
+      }
+
       if (eventId) {
+        if (typeof eventId !== "string") {
+          toast.error("Error", { description: "Invalid event ID" })
+          return
+        }
+
         await dispatch(updatePlantingEvent({ projectId, eventId, data })).unwrap()
-        toast.success("Planting event updated successfully")
+        toast.success("Success", { description: "Planting event updated successfully" })
       } else {
         await dispatch(createPlantingEvent({ projectId, data })).unwrap()
-        toast.success("Planting event created successfully")
+        toast.success("Success", { description: "Planting event created successfully" })
       }
 
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to save planting event")
+      const errorMessage = err?.message || err?.detail || "Failed to save planting event"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -112,7 +159,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
               control={control}
               render={({ field }) => (
                 <>
-                  <Input id="name" {...field} />
+                  <Input id="name" {...field} disabled={isSubmitting} />
                   {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                 </>
               )}
@@ -127,7 +174,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="planting_date" type="date" {...field} />
+                    <Input id="planting_date" type="date" {...field} disabled={isSubmitting} />
                     {errors.planting_date && <p className="text-sm text-destructive">{errors.planting_date.message}</p>}
                   </>
                 )}
@@ -141,7 +188,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="end_date" type="date" {...field} />
+                    <Input id="end_date" type="date" {...field} disabled={isSubmitting} />
                     {errors.end_date && <p className="text-sm text-destructive">{errors.end_date.message}</p>}
                   </>
                 )}
@@ -162,6 +209,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                       type="number"
                       step="0.01"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.area_size && <p className="text-sm text-destructive">{errors.area_size.message}</p>}
@@ -177,7 +225,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -206,7 +254,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="stage" placeholder="e.g., Seedling, Growing" {...field} />
+                    <Input id="stage" placeholder="e.g., Seedling, Growing" {...field} disabled={isSubmitting} />
                     {errors.stage && <p className="text-sm text-destructive">{errors.stage.message}</p>}
                   </>
                 )}
@@ -220,7 +268,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="type" placeholder="e.g., Vegetable, Fruit" {...field} />
+                    <Input id="type" placeholder="e.g., Vegetable, Fruit" {...field} disabled={isSubmitting} />
                     {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
                   </>
                 )}
@@ -235,7 +283,7 @@ export function PlantingEventDialog({ open, onOpenChange, projectId, eventId, on
               control={control}
               render={({ field }) => (
                 <>
-                  <Textarea id="notes" rows={3} {...field} />
+                  <Textarea id="notes" rows={3} {...field} disabled={isSubmitting} />
                   {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
                 </>
               )}

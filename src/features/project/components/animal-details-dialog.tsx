@@ -59,7 +59,23 @@ export function AnimalDetailsDialog({
 
     setLoading(true)
     try {
+      if (typeof projectId !== "string" || typeof groupId !== "string" || typeof animalId !== "string") {
+        toast.error("Error", { description: "Invalid IDs provided" })
+        return
+      }
+
       const group = await dispatch(getAnimalGroupById({ projectId, groupId })).unwrap()
+
+      if (!group || typeof group !== "object") {
+        toast.error("Error", { description: "Group data not found" })
+        return
+      }
+
+      if (!group.animals || typeof group.animals !== "object") {
+        toast.error("Error", { description: "Animal data not found" })
+        return
+      }
+
       setAnimal(group.animals)
 
       // Fetch diseases and processes in parallel
@@ -72,10 +88,11 @@ export function AnimalDetailsDialog({
           .catch(() => []),
       ])
 
-      setDiseases(diseasesData || [])
-      setProcesses(processesData || [])
+      setDiseases(Array.isArray(diseasesData) ? diseasesData : [])
+      setProcesses(Array.isArray(processesData) ? processesData : [])
     } catch (err: any) {
-      toast.error("Error", { description: "Failed to load animal data" })
+      const errorMessage = err?.message || "Failed to load animal data"
+      toast.error("Error", { description: errorMessage })
     } finally {
       setLoading(false)
     }
@@ -89,7 +106,7 @@ export function AnimalDetailsDialog({
 
   const getHealthStatus = useCallback((healthStatus: any): string => {
     if (typeof healthStatus === "string") return healthStatus
-    if (Array.isArray(healthStatus) && healthStatus.length > 0) {
+    if (Array.isArray(healthStatus) && healthStatus.length > 0 && healthStatus[0]?.status) {
       return healthStatus[0].status
     }
     return "Unknown"
@@ -97,25 +114,45 @@ export function AnimalDetailsDialog({
 
   const handleDeleteDisease = async (diseaseId: string) => {
     try {
-      if (!animalId) return
+      if (!animalId || typeof animalId !== "string") {
+        toast.error("Error", { description: "Invalid animal ID" })
+        return
+      }
+
+      if (!diseaseId || typeof diseaseId !== "string") {
+        toast.error("Error", { description: "Invalid disease ID" })
+        return
+      }
+
       await dispatch(deleteAnimalDisease({ animalId, diseaseId })).unwrap()
-      toast.success("Disease record deleted")
-      setDiseases(diseases.filter((d) => d.id !== diseaseId))
+      toast.success("Success", { description: "Disease record deleted" })
+      setDiseases((prev) => prev.filter((d) => d?.id !== diseaseId))
       setDeleteDialog(null)
     } catch (err: any) {
-      toast.error("Failed to delete disease record")
+      const errorMessage = err?.message || "Failed to delete disease record"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
   const handleDeleteProcess = async (processId: string) => {
     try {
-      if (!animalId) return
+      if (!animalId || typeof animalId !== "string") {
+        toast.error("Error", { description: "Invalid animal ID" })
+        return
+      }
+
+      if (!processId || typeof processId !== "string") {
+        toast.error("Error", { description: "Invalid process ID" })
+        return
+      }
+
       await dispatch(deleteAnimalProcess({ animalId, processId })).unwrap()
-      toast.success("Process record deleted")
-      setProcesses(processes.filter((p) => p.id !== processId))
+      toast.success("Success", { description: "Process record deleted" })
+      setProcesses((prev) => prev.filter((p) => p?.id !== processId))
       setDeleteDialog(null)
     } catch (err: any) {
-      toast.error("Failed to delete process record")
+      const errorMessage = err?.message || "Failed to delete process record"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -169,10 +206,12 @@ export function AnimalDetailsDialog({
                       <p className="text-sm font-medium">{animal.breed}</p>
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium">{animal.type}</p>
-                  </div>
+                  {animal.type && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Type</p>
+                      <p className="text-sm font-medium">{animal.type}</p>
+                    </div>
+                  )}
                   {animal.gender && (
                     <div>
                       <p className="text-sm text-muted-foreground">Gender</p>
@@ -188,7 +227,7 @@ export function AnimalDetailsDialog({
                       </div>
                     </div>
                   )}
-                  {animal.weight !== undefined && (
+                  {typeof animal.weight === "number" && (
                     <div className="flex items-center gap-2">
                       <Weight className="h-4 w-4 text-muted-foreground" />
                       <div>
@@ -197,7 +236,7 @@ export function AnimalDetailsDialog({
                       </div>
                     </div>
                   )}
-                  {animal.age !== undefined && (
+                  {typeof animal.age === "number" && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
@@ -206,13 +245,13 @@ export function AnimalDetailsDialog({
                       </div>
                     </div>
                   )}
-                  {animal.arrival_date && (
+                  {animal.arrival_date && typeof animal.arrival_date === "string" && (
                     <div>
                       <p className="text-sm text-muted-foreground">Arrival Date</p>
                       <p className="text-sm font-medium">{new Date(animal.arrival_date).toLocaleDateString()}</p>
                     </div>
                   )}
-                  {animal.birthday && (
+                  {animal.birthday && typeof animal.birthday === "string" && (
                     <div>
                       <p className="text-sm text-muted-foreground">Birthday</p>
                       <p className="text-sm font-medium">{new Date(animal.birthday).toLocaleDateString()}</p>
@@ -221,7 +260,7 @@ export function AnimalDetailsDialog({
                 </CardContent>
               </Card>
 
-              {animal.notes && (
+              {animal.notes && typeof animal.notes === "string" && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Notes</CardTitle>
@@ -246,17 +285,19 @@ export function AnimalDetailsDialog({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {diseases.length === 0 ? (
+                  {!Array.isArray(diseases) || diseases.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No disease records yet</p>
                   ) : (
                     <div className="space-y-2">
                       {diseases.map((disease) => (
-                        <div key={disease.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                        <div key={disease?.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
                           <div>
-                            <p className="text-sm font-medium">{disease.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(disease.date).toLocaleDateString()}
-                            </p>
+                            <p className="text-sm font-medium">{disease?.name || "Unknown"}</p>
+                            {disease?.date && typeof disease.date === "string" && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(disease.date).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                           <Button
                             size="sm"
@@ -264,7 +305,7 @@ export function AnimalDetailsDialog({
                             onClick={() =>
                               setDeleteDialog({
                                 type: "disease",
-                                id: disease.id,
+                                id: disease?.id || "",
                               })
                             }
                           >
@@ -291,27 +332,31 @@ export function AnimalDetailsDialog({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {processes.length === 0 ? (
+                  {!Array.isArray(processes) || processes.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No process records yet</p>
                   ) : (
                     <div className="space-y-2">
                       {processes.map((process) => (
-                        <div key={process.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                        <div key={process?.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
                           <div>
-                            <p className="text-sm font-medium">{process.type}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(process.date).toLocaleDateString()}
-                            </p>
+                            <p className="text-sm font-medium">{process?.type || "Unknown"}</p>
+                            {process?.date && typeof process.date === "string" && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(process.date).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">{process.number_of_animal} animals</Badge>
+                            {typeof process?.number_of_animal === "number" && (
+                              <Badge variant="outline">{process.number_of_animal} animals</Badge>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() =>
                                 setDeleteDialog({
                                   type: "process",
-                                  id: process.id,
+                                  id: process?.id || "",
                                 })
                               }
                             >
@@ -325,7 +370,7 @@ export function AnimalDetailsDialog({
                 </CardContent>
               </Card>
 
-              {animal.harvests && animal.harvests.length > 0 && (
+              {Array.isArray(animal.harvests) && animal.harvests.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
@@ -336,19 +381,23 @@ export function AnimalDetailsDialog({
                   <CardContent>
                     <div className="space-y-3">
                       {animal.harvests.map((harvest) => (
-                        <div key={harvest.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
+                        <div key={harvest?.id} className="flex items-center justify-between p-3 bg-muted/50 rounded">
                           <div>
-                            <p className="text-sm font-medium">{harvest.product}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(harvest.date).toLocaleDateString()}
-                            </p>
-                            {harvest.harvest_notes && (
+                            <p className="text-sm font-medium">{harvest?.product || "Unknown"}</p>
+                            {harvest?.date && typeof harvest.date === "string" && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(harvest.date).toLocaleDateString()}
+                              </p>
+                            )}
+                            {harvest?.harvest_notes && typeof harvest.harvest_notes === "string" && (
                               <p className="text-xs text-muted-foreground mt-1">{harvest.harvest_notes}</p>
                             )}
                           </div>
-                          <Badge variant="secondary">
-                            {harvest.amount} {harvest.unit}
-                          </Badge>
+                          {typeof harvest?.amount === "number" && (
+                            <Badge variant="secondary">
+                              {harvest.amount} {harvest?.unit || ""}
+                            </Badge>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -24,7 +24,7 @@ import { useMemo } from "react"
 interface RecordHarvestProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  project: ProjectResponse
+  project: ProjectResponse | null
   onSuccess: () => void
 }
 
@@ -49,26 +49,70 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
   })
 
   const plantingEvents = useMemo(() => {
-    if (project.type !== "PlantingProject" || !project.planting_events) {
+    if (!project || typeof project !== "object") {
       return []
     }
-    return project.planting_events.map((event) => ({
-      id: event.id,
-      name: event.name,
-    }))
-  }, [project.type, project.planting_events])
+
+    if (project.type !== "PlantingProject") {
+      return []
+    }
+
+    if (!Array.isArray(project.planting_events)) {
+      return []
+    }
+
+    return project.planting_events
+      .filter((event) => event && typeof event === "object" && event.id)
+      .map((event) => ({
+        id: event.id ?? "",
+        name: event.name ?? "Unnamed Event",
+      }))
+  }, [project])
 
   const selectedEventId = watch("planting_event_id")
   const selectedEvent = useMemo(() => {
-    return (project.planting_events || []).find((event) => event.id === selectedEventId)
-  }, [project.planting_events, selectedEventId])
+    if (!project?.planting_events || !Array.isArray(project.planting_events)) {
+      return null
+    }
+    return project.planting_events.find((event) => event?.id === selectedEventId) || null
+  }, [project?.planting_events, selectedEventId])
 
-  const speciesId = selectedEvent?.species?.[0]?.id || ""
+  const speciesId = useMemo(() => {
+    if (!selectedEvent?.species || !Array.isArray(selectedEvent.species)) {
+      return ""
+    }
+    return selectedEvent.species[0]?.id ?? ""
+  }, [selectedEvent?.species])
 
   const onSubmit = async (data: RecordHarvestForm) => {
     try {
-      if (!speciesId) {
-        toast.error("No species found for this planting event")
+      if (!project || typeof project !== "object") {
+        toast.error("Error", { description: "Invalid project data" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid harvest data" })
+        return
+      }
+
+      if (!speciesId || typeof speciesId !== "string") {
+        toast.error("Error", { description: "No species found for this planting event" })
+        return
+      }
+
+      if (typeof data.amount !== "number" || data.amount <= 0) {
+        toast.error("Error", { description: "Invalid harvest amount" })
+        return
+      }
+
+      if (!data.unit || typeof data.unit !== "string") {
+        toast.error("Error", { description: "Please select a unit" })
+        return
+      }
+
+      if (!data.quality || typeof data.quality !== "string") {
+        toast.error("Error", { description: "Please select quality" })
         return
       }
 
@@ -87,12 +131,13 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
         }),
       ).unwrap()
 
-      toast.success("Harvest record created successfully")
+      toast.success("Success", { description: "Harvest record created successfully" })
       reset()
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to record harvest")
+      const errorMessage = err?.message || err?.detail || "Failed to record harvest"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -112,16 +157,22 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
               control={control}
               render={({ field }) => (
                 <>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a planting event" />
                     </SelectTrigger>
                     <SelectContent>
-                      {plantingEvents.map((event) => (
-                        <SelectItem key={event.id} value={event.id}>
-                          {event.name}
+                      {plantingEvents.length > 0 ? (
+                        plantingEvents.map((event) => (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No planting events available
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                   {errors.planting_event_id && (
@@ -140,7 +191,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="harvest_date" type="date" {...field} />
+                    <Input id="harvest_date" type="date" {...field} disabled={isSubmitting} />
                     {errors.harvest_date && <p className="text-sm text-destructive">{errors.harvest_date.message}</p>}
                   </>
                 )}
@@ -159,6 +210,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
                       step="0.01"
                       placeholder="Quantity harvested"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
@@ -176,7 +228,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -201,7 +253,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

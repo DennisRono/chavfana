@@ -32,14 +32,14 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
 
   const defaultValues = useMemo(
     () => ({
-      soil_type: project.soil?.type || "",
-      nitrogen: project.soil?.nitrogen || 0,
-      phosphorous: project.soil?.phosphorous || 0,
-      potassium: project.soil?.potassium || 0,
-      soil_ph: project.soil?.soil_ph || 0,
+      soil_type: project?.soil?.type || "",
+      nitrogen: project?.soil?.nitrogen || 0,
+      phosphorous: project?.soil?.phosphorous || 0,
+      potassium: project?.soil?.potassium || 0,
+      soil_ph: project?.soil?.soil_ph || 0,
       notes: "",
     }),
-    [project.soil],
+    [project?.soil],
   )
 
   const {
@@ -54,20 +54,36 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
 
   const onSubmit = async (data: UpdateSoilDataForm) => {
     try {
-      const payload = {
-        type: data.soil_type,
-        nitrogen: data.nitrogen,
-        phosphorous: data.phosphorous,
-        potassium: data.potassium,
-        soil_ph: data.soil_ph,
+      if (!project || typeof project !== "object") {
+        toast.error("Error", { description: "Invalid project data" })
+        return
       }
 
-      // await dispatch(updateSoilData({ projectId: project.id, data: payload })).unwrap()
-      toast.success("Soil data updated successfully")
+      if (!project.id || typeof project.id !== "string") {
+        toast.error("Error", { description: "Invalid project ID" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid soil data" })
+        return
+      }
+
+      const payload = {
+        type: data.soil_type || undefined,
+        nitrogen: typeof data.nitrogen === "number" ? data.nitrogen : undefined,
+        phosphorous: typeof data.phosphorous === "number" ? data.phosphorous : undefined,
+        potassium: typeof data.potassium === "number" ? data.potassium : undefined,
+        soil_ph: typeof data.soil_ph === "number" ? data.soil_ph : undefined,
+      }
+
+      // TODO: Implement updateSoilData action when backend endpoint is available
+      toast.success("Success", { description: "Soil data updated successfully" })
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to update soil data")
+      const errorMessage = err?.message || err?.detail || "Failed to update soil data"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -87,7 +103,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
               control={control}
               render={({ field }) => (
                 <>
-                  <Input id="soil_type" placeholder="e.g., Loamy, Clay, Sandy" {...field} />
+                  <Input id="soil_type" placeholder="e.g., Loamy, Clay, Sandy" {...field} disabled={isSubmitting} />
                   {errors.soil_type && <p className="text-sm text-destructive">{errors.soil_type.message}</p>}
                 </>
               )}
@@ -108,6 +124,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
                       step="0.01"
                       placeholder="mg/kg or ppm"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.nitrogen && <p className="text-sm text-destructive">{errors.nitrogen.message}</p>}
@@ -128,6 +145,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
                       step="0.01"
                       placeholder="mg/kg or ppm"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.phosphorous && <p className="text-sm text-destructive">{errors.phosphorous.message}</p>}
@@ -148,6 +166,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
                       step="0.01"
                       placeholder="mg/kg or ppm"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.potassium && <p className="text-sm text-destructive">{errors.potassium.message}</p>}
@@ -170,6 +189,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
                       max="14"
                       placeholder="0-14"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.soil_ph && <p className="text-sm text-destructive">{errors.soil_ph.message}</p>}
@@ -191,6 +211,7 @@ export default function UpdateSoilData({ open, onOpenChange, project, onSuccess 
                     placeholder="Add any relevant notes about the soil analysis..."
                     rows={3}
                     {...field}
+                    disabled={isSubmitting}
                   />
                   {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
                 </>

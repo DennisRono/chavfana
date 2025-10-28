@@ -45,25 +45,64 @@ export default function AddHealthRecord({ open, onOpenChange, project, onSuccess
   })
 
   const animals = useMemo(() => {
-    if (project.type !== "AnimalKeepingProject" || !project.animal_group) {
+    if (!project || typeof project !== "object") {
       return []
     }
-    return project.animal_group.flatMap((group) => ({
-      id: group.animals.id,
-      name: group.animals.name || group.animals.tag || "Unknown",
-      groupName: group.group_name,
-    }))
-  }, [project.type, project.animal_group])
+
+    if (project.type !== "AnimalKeepingProject") {
+      return []
+    }
+
+    if (!Array.isArray(project.animal_group)) {
+      return []
+    }
+
+    return project.animal_group
+      .filter((group) => group && typeof group === "object" && group.animals && group.animals.id)
+      .flatMap((group) => {
+        const animal = group.animals
+        if (!animal || typeof animal !== "object") {
+          return []
+        }
+
+        return {
+          id: animal.id ?? "",
+          name: animal.name || animal.tag || "Unknown Animal",
+          groupName: group.group_name ?? "Unnamed Group",
+        }
+      })
+  }, [project])
 
   const onSubmit = async (data: AddHealthRecordForm) => {
     try {
-      // await dispatch(addHealthRecord({ projectId: project.id, data })).unwrap()
-      toast.success("Health record added successfully")
+      if (!project || typeof project !== "object") {
+        toast.error("Error", { description: "Invalid project data" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid health record data" })
+        return
+      }
+
+      if (!data.animal_id || typeof data.animal_id !== "string") {
+        toast.error("Error", { description: "Please select an animal" })
+        return
+      }
+
+      if (!data.status || typeof data.status !== "string") {
+        toast.error("Error", { description: "Please select a health status" })
+        return
+      }
+
+      // TODO: Implement health record creation action when backend endpoint is available
+      toast.success("Success", { description: "Health record added successfully" })
       reset()
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to add health record")
+      const errorMessage = err?.message || err?.detail || "Failed to add health record"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -83,16 +122,22 @@ export default function AddHealthRecord({ open, onOpenChange, project, onSuccess
               control={control}
               render={({ field }) => (
                 <>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                     <SelectTrigger>
                       <SelectValue placeholder="Choose an animal" />
                     </SelectTrigger>
                     <SelectContent>
-                      {animals.map((animal) => (
-                        <SelectItem key={animal.id} value={animal.id}>
-                          {animal.name} ({animal.groupName})
+                      {animals.length > 0 ? (
+                        animals.map((animal) => (
+                          <SelectItem key={animal.id} value={animal.id}>
+                            {animal.name} ({animal.groupName})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No animals available
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                   {errors.animal_id && <p className="text-sm text-destructive">{errors.animal_id.message}</p>}
@@ -108,7 +153,7 @@ export default function AddHealthRecord({ open, onOpenChange, project, onSuccess
               control={control}
               render={({ field }) => (
                 <>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -136,6 +181,7 @@ export default function AddHealthRecord({ open, onOpenChange, project, onSuccess
                     placeholder="Add any relevant notes about the health status..."
                     rows={3}
                     {...field}
+                    disabled={isSubmitting}
                   />
                   {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
                 </>

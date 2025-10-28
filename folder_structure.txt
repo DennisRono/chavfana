@@ -1,0 +1,129 @@
+folder and file structure example
+
+in the app page.tsx files should actually do a dynamic import and the actual implementation of a page should be in the features/ folder
+
+example of a page.tsx file should follow this structure
+
+import React from 'react'
+import dynamic from 'next/dynamic'
+import Loader from '@/components/shared/loader'
+
+const DashboardView = dynamic(() => import('@/features/dashboard/index'), {
+  ssr: true,
+  loading: () => <Loader />,
+})
+
+const DashboardPage = () => {
+  return <DashboardView />
+}
+
+export default DashboardPage
+
+below is an example of a folder structure that this project should atlest look or follow
+├── .env
+├── .gitignore
+├── README.md
+├── components.json
+├── eslint.config.mjs
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+├── src
+│   ├── app
+│   │   ├── (protected)
+│   │   │   ├── analytics
+│   │   │   │   ├── page.tsx
+│   │   ├── (public)
+│   │   │   ├── (auth)
+│   │   │   │   ├── forgot-password
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── login
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── password
+│   │   │   │   │   ├── reset
+│   │   │   │   │   │   ├── confirm
+│   │   │   │   │   │   │   ├── [user_id]
+│   │   │   │   │   │   │   │   ├── [token]
+│   │   │   │   │   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── password-reset-email-sent
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── password-reset-otp
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── verify-email
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   ├── verify-phone
+│   │   │   │   │   ├── page.tsx
+│   │   │   ├── test
+│   │   │   │   ├── page.tsx
+│   │   ├── error.tsx
+│   │   ├── layout.tsx
+│   │   ├── manifest.ts
+│   │   ├── not-found.tsx
+│   │   ├── page.tsx
+│   │   ├── robots.ts
+│   │   ├── sitemap.ts
+│   ├── components
+│   │   ├── shared
+│   │   │   ├── footer.tsx
+│   │   │   ├── header.tsx
+│   │   │   ├── loader.tsx
+│   │   │   ├── metric-card.tsx
+│   │   │   ├── project-list.tsx
+│   │   │   ├── table.tsx
+│   │   ├── ui
+│   │   │   ├── alert-dialog.tsx
+│   ├── config
+│   │   ├── app_info.json
+│   ├── constants
+│   │   ├── animal-farming.ts
+│   │   ├── plant-farming.ts
+│   ├── contexts
+│   │   ├── auth-provider.tsx
+│   │   ├── public-provider.tsx
+│   │   ├── redux-provider.tsx
+│   ├── data
+│   │   ├── countries.json
+│   ├── features
+│   │   ├── animal-farming
+│   │   │   ├── components
+│   │   │   │   ├── group-animal-form.tsx
+│   │   │   │   ├── individual-animal-row.tsx
+│   │   │   ├── index.tsx
+│   ├── hooks
+│   │   ├── use-debounced.ts
+│   │   ├── use-user-location.ts
+│   ├── lib
+│   │   ├── utils.ts
+│   ├── schemas
+│   │   ├── animal-farming.ts
+│   │   ├── animal-group-dialog.ts
+│   │   ├── animal-health-records.ts
+│   │   ├── plant-farming.ts
+│   │   ├── planting-event-dialog.ts
+│   │   ├── quick-actions.ts
+│   ├── store
+│   │   ├── actions
+│   │   │   ├── address.ts
+│   │   ├── hooks.ts
+│   │   ├── selectors
+│   │   │   ├── animal.ts
+│   │   ├── services
+│   │   │   ├── auth-api.ts
+│   │   ├── slices
+│   │   │   ├── animal-slice.ts
+│   │   ├── store.ts
+│   │   ├── useWebStorage.ts
+│   ├── styles
+│   │   ├── globals.css
+│   ├── types
+│   │   ├── responses.ts
+│   ├── utils
+│   │   ├── functions.ts
+├── tsconfig.json
+
+
+you can add things that i may not have accounted for
+

@@ -72,36 +72,48 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
     if (groupId && open) {
       const fetchGroup = async () => {
         try {
+          if (!projectId || !groupId) {
+            toast.error("Error", { description: "Invalid project or group ID" })
+            return
+          }
+
           const group = await dispatch(getAnimalGroupById({ projectId, groupId })).unwrap()
 
+          if (!group) {
+            toast.error("Error", { description: "Group data not found" })
+            return
+          }
+
+          const animals = group?.animals
           const formData: AnimalGroupDialogForm = {
-            group_name: group.group_name,
-            type: group.type as "Individual" | "Group",
-            housing: group.housing,
+            group_name: group?.group_name ?? "",
+            type: (group?.type as "Individual" | "Group") || "Individual",
+            housing: group?.housing ?? "BARN",
             animal: {
-              type: group.animals.type || "",
-              breed: group.animals.breed || "",
-              name: group.animals.name || "",
-              gender: group.animals.gender || "MALE",
-              ...(group.type === "Individual"
+              type: animals?.type ?? "",
+              breed: animals?.breed ?? "",
+              name: animals?.name ?? "",
+              gender: animals?.gender ?? "MALE",
+              ...(group?.type === "Individual"
                 ? {
-                    tag: group.animals.tag || "",
-                    weight: group.animals.weight || 0,
-                    age: group.animals.age || 0,
+                    tag: animals?.tag ?? "",
+                    weight: animals?.weight ?? 0,
+                    age: animals?.age ?? 0,
                   }
                 : {
-                    starting_number: group.animals.starting_number || 0,
-                    average_weight: group.animals.average_weight || 0,
-                    average_age: group.animals.average_age || 0,
+                    starting_number: animals?.starting_number ?? 0,
+                    average_weight: animals?.average_weight ?? 0,
+                    average_age: animals?.average_age ?? 0,
                   }),
-              arrival_date: group.animals.arrival_date || "",
-              birthday: group.animals.birthday || "",
-              notes: group.animals.notes || "",
+              arrival_date: animals?.arrival_date ?? "",
+              birthday: animals?.birthday ?? "",
+              notes: animals?.notes ?? "",
             },
           }
           reset(formData as any)
         } catch (err: any) {
-          toast.error("Error", { description: "Failed to load group data" })
+          const errorMessage = err?.message || err?.detail || "Failed to load group data"
+          toast.error("Error", { description: errorMessage })
         }
       }
       fetchGroup()
@@ -112,7 +124,17 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
 
   const onSubmit = async (data: AnimalGroupDialogForm) => {
     try {
+      if (!projectId || typeof projectId !== "string") {
+        toast.error("Error", { description: "Invalid project ID" })
+        return
+      }
+
       if (groupId) {
+        if (typeof groupId !== "string") {
+          toast.error("Error", { description: "Invalid group ID" })
+          return
+        }
+
         await dispatch(updateAnimalGroup({ projectId, groupId, data })).unwrap()
         toast.success("Animal group updated successfully")
       } else {
@@ -123,7 +145,8 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to save animal group")
+      const errorMessage = err?.message || err?.detail || "Failed to save animal group"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -146,7 +169,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="group_name" {...field} />
+                    <Input id="group_name" {...field} disabled={isSubmitting} />
                     {errors.group_name && <p className="text-sm text-destructive">{errors.group_name.message}</p>}
                   </>
                 )}
@@ -160,7 +183,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -182,7 +205,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -208,7 +231,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="animal_type" placeholder="e.g., Cattle, Chicken" {...field} />
+                    <Input id="animal_type" placeholder="e.g., Cattle, Chicken" {...field} disabled={isSubmitting} />
                     {errors.animal?.type && <p className="text-sm text-destructive">{errors.animal.type.message}</p>}
                   </>
                 )}
@@ -224,7 +247,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="breed" {...field} />
+                    <Input id="breed" {...field} disabled={isSubmitting} />
                     {errors.animal?.breed && <p className="text-sm text-destructive">{errors.animal.breed.message}</p>}
                   </>
                 )}
@@ -238,7 +261,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="name" {...field} />
+                    <Input id="name" {...field} disabled={isSubmitting} />
                     {errors.animal?.name && <p className="text-sm text-destructive">{errors.animal.name.message}</p>}
                   </>
                 )}
@@ -252,7 +275,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -277,7 +300,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Input id="tag" {...field} />
+                      <Input id="tag" {...field} disabled={isSubmitting} />
                       {errors.animal?.tag && <p className="text-sm text-destructive">{errors.animal.tag.message}</p>}
                     </>
                   )}
@@ -300,6 +323,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         type="number"
                         step="0.01"
                         {...field}
+                        disabled={isSubmitting}
                         onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                       />
                       {errors.animal?.weight && (
@@ -321,6 +345,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         id="age"
                         type="number"
                         {...field}
+                        disabled={isSubmitting}
                         onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
                       />
                       {errors.animal?.age && <p className="text-sm text-destructive">{errors.animal.age.message}</p>}
@@ -336,7 +361,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Input id="arrival_date" type="date" {...field} />
+                      <Input id="arrival_date" type="date" {...field} disabled={isSubmitting} />
                       {errors.animal?.arrival_date && (
                         <p className="text-sm text-destructive">{errors.animal.arrival_date.message}</p>
                       )}
@@ -352,7 +377,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Input id="birthday" type="date" {...field} />
+                      <Input id="birthday" type="date" {...field} disabled={isSubmitting} />
                       {errors.animal?.birthday && (
                         <p className="text-sm text-destructive">{errors.animal.birthday.message}</p>
                       )}
@@ -374,6 +399,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         id="starting_number"
                         type="number"
                         {...field}
+                        disabled={isSubmitting}
                         onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
                       />
                       {errors.animal?.starting_number && (
@@ -396,6 +422,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         type="number"
                         step="0.01"
                         {...field}
+                        disabled={isSubmitting}
                         onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                       />
                       {errors.animal?.average_weight && (
@@ -417,6 +444,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                         id="average_age"
                         type="number"
                         {...field}
+                        disabled={isSubmitting}
                         onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
                       />
                       {errors.animal?.average_age && (
@@ -434,7 +462,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Input id="arrival_date" type="date" {...field} />
+                      <Input id="arrival_date" type="date" {...field} disabled={isSubmitting} />
                       {errors.animal?.arrival_date && (
                         <p className="text-sm text-destructive">{errors.animal.arrival_date.message}</p>
                       )}
@@ -450,7 +478,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Input id="birthday" type="date" {...field} />
+                      <Input id="birthday" type="date" {...field} disabled={isSubmitting} />
                       {errors.animal?.birthday && (
                         <p className="text-sm text-destructive">{errors.animal.birthday.message}</p>
                       )}
@@ -468,7 +496,7 @@ export function AnimalGroupDialog({ open, onOpenChange, projectId, groupId, onSu
               control={control}
               render={({ field }) => (
                 <>
-                  <Textarea id="notes" rows={3} {...field} />
+                  <Textarea id="notes" rows={3} {...field} disabled={isSubmitting} />
                   {errors.animal?.notes && <p className="text-sm text-destructive">{errors.animal.notes.message}</p>}
                 </>
               )}

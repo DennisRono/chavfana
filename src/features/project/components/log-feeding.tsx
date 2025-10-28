@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import type { ProjectResponse } from "@/types/project"
 import { useAppDispatch } from "@/store/hooks"
+import { createAnimalFeed } from "@/store/actions/animal-feeds"
 import { toast } from "sonner"
 import { logFeedingSchema, type LogFeedingForm } from "@/schemas/quick-actions"
 import { useMemo } from "react"
@@ -24,7 +25,7 @@ import { useMemo } from "react"
 interface LogFeedingProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  project: ProjectResponse
+  project: ProjectResponse | null
   onSuccess: () => void
 }
 
@@ -48,25 +49,92 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
     },
   })
 
-  const animalGroups = useMemo(() => {
-    if (project.type !== "AnimalKeepingProject" || !project.animal_group) {
+  const animals = useMemo(() => {
+    if (!project || typeof project !== "object") {
       return []
     }
-    return project.animal_group.map((group) => ({
-      id: group.id,
-      name: group.group_name,
-    }))
-  }, [project.type, project.animal_group])
+
+    if (project.type !== "AnimalKeepingProject") {
+      return []
+    }
+
+    if (!Array.isArray(project.animal_group)) {
+      return []
+    }
+
+    return project.animal_group
+      .filter((group) => group && typeof group === "object" && group.animals && group.animals.id)
+      .flatMap((group) => {
+        const animal = group.animals
+        if (!animal || typeof animal !== "object") {
+          return []
+        }
+
+        return {
+          id: animal.id ?? "",
+          name: animal.name || animal.tag || "Unknown Animal",
+          groupName: group.group_name ?? "Unnamed Group",
+        }
+      })
+  }, [project])
 
   const onSubmit = async (data: LogFeedingForm) => {
     try {
-      // await dispatch(logFeeding({ projectId: project.id, data })).unwrap()
-      toast.success("Feeding record logged successfully")
+      if (!project || typeof project !== "object") {
+        toast.error("Error", { description: "Invalid project data" })
+        return
+      }
+
+      if (!project.id || typeof project.id !== "string") {
+        toast.error("Error", { description: "Invalid project ID" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid feeding data" })
+        return
+      }
+
+      if (!data.animal_group_id || typeof data.animal_group_id !== "string") {
+        toast.error("Error", { description: "Please select an animal" })
+        return
+      }
+
+      if (typeof data.quantity !== "number" || data.quantity <= 0) {
+        toast.error("Error", { description: "Invalid feeding quantity" })
+        return
+      }
+
+      if (!data.feed_type || typeof data.feed_type !== "string") {
+        toast.error("Error", { description: "Please enter feed type" })
+        return
+      }
+
+      if (!data.feeding_date || typeof data.feeding_date !== "string") {
+        toast.error("Error", { description: "Please select a feeding date" })
+        return
+      }
+
+      await dispatch(
+        createAnimalFeed({
+          animalId: data.animal_group_id,
+          feedData: {
+            date: data.feeding_date,
+            name: data.feed_type,
+            amount: data.quantity,
+            unit: data.unit,
+            animal: data.animal_group_id,
+          },
+        }),
+      ).unwrap()
+
+      toast.success("Success", { description: "Feeding record logged successfully" })
       reset()
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to log feeding record")
+      const errorMessage = err?.message || err?.detail || "Failed to log feeding record"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -80,22 +148,28 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="animal_group_id">Animal Group</Label>
+            <Label htmlFor="animal_group_id">Animal</Label>
             <Controller
               name="animal_group_id"
               control={control}
               render={({ field }) => (
                 <>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose an animal group" />
+                      <SelectValue placeholder="Choose an animal" />
                     </SelectTrigger>
                     <SelectContent>
-                      {animalGroups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name}
+                      {animals.length > 0 ? (
+                        animals.map((animal) => (
+                          <SelectItem key={animal.id} value={animal.id}>
+                            {animal.name} ({animal.groupName})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No animals available
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                   {errors.animal_group_id && (
@@ -114,7 +188,7 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="feed_type" placeholder="e.g., Corn, Hay, Pellets" {...field} />
+                    <Input id="feed_type" placeholder="e.g., Corn, Hay, Pellets" {...field} disabled={isSubmitting} />
                     {errors.feed_type && <p className="text-sm text-destructive">{errors.feed_type.message}</p>}
                   </>
                 )}
@@ -127,7 +201,7 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Input id="feeding_date" type="date" {...field} />
+                    <Input id="feeding_date" type="date" {...field} disabled={isSubmitting} />
                     {errors.feeding_date && <p className="text-sm text-destructive">{errors.feeding_date.message}</p>}
                   </>
                 )}
@@ -149,6 +223,7 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
                       step="0.01"
                       placeholder="Amount of feed"
                       {...field}
+                      disabled={isSubmitting}
                       onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
                     />
                     {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
@@ -163,7 +238,7 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
                 control={control}
                 render={({ field }) => (
                   <>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -188,7 +263,13 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
               control={control}
               render={({ field }) => (
                 <>
-                  <Textarea id="notes" placeholder="Add any relevant notes about the feeding..." rows={3} {...field} />
+                  <Textarea
+                    id="notes"
+                    placeholder="Add any relevant notes about the feeding..."
+                    rows={3}
+                    {...field}
+                    disabled={isSubmitting}
+                  />
                   {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
                 </>
               )}

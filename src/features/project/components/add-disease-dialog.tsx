@@ -44,13 +44,34 @@ export function AddDiseaseDialog({ open, onOpenChange, animalId, onSuccess }: Ad
 
   const onSubmit = async (data: AnimalDiseaseForm) => {
     try {
+      if (!animalId || typeof animalId !== "string") {
+        toast.error("Error", { description: "Invalid animal ID" })
+        return
+      }
+
+      if (!data || typeof data !== "object") {
+        toast.error("Error", { description: "Invalid disease data" })
+        return
+      }
+
+      if (!data.name || typeof data.name !== "string") {
+        toast.error("Error", { description: "Please enter disease name" })
+        return
+      }
+
+      if (!data.date || typeof data.date !== "string") {
+        toast.error("Error", { description: "Please select a date" })
+        return
+      }
+
       await dispatch(createAnimalDisease({ animalId, diseaseData: data })).unwrap()
-      toast.success("Disease record added")
+      toast.success("Success", { description: "Disease record added successfully" })
       reset()
       onSuccess()
       onOpenChange(false)
     } catch (err: any) {
-      toast.error(err.message || "Failed to add disease record")
+      const errorMessage = err?.message || err?.detail || "Failed to add disease record"
+      toast.error("Error", { description: errorMessage })
     }
   }
 
@@ -70,7 +91,7 @@ export function AddDiseaseDialog({ open, onOpenChange, animalId, onSuccess }: Ad
               control={control}
               render={({ field }) => (
                 <>
-                  <Input id="name" placeholder="e.g., Foot and Mouth" {...field} />
+                  <Input id="name" placeholder="e.g., Foot and Mouth" {...field} disabled={isSubmitting} />
                   {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                 </>
               )}
@@ -84,7 +105,7 @@ export function AddDiseaseDialog({ open, onOpenChange, animalId, onSuccess }: Ad
               control={control}
               render={({ field }) => (
                 <>
-                  <Input id="date" type="date" {...field} />
+                  <Input id="date" type="date" {...field} disabled={isSubmitting} />
                   {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
                 </>
               )}
