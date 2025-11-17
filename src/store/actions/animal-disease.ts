@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AnimalDisease, AnimalDiseaseData } from '@/types/animal-farming'
+import type { AnimalDiseaseResponse, AnimalDiseaseData } from '@/types/animal-farming'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
 
@@ -17,7 +17,7 @@ const getAuthHeader = (
 }
 
 export const getAnimalDiseases = createAsyncThunk<
-  AnimalDisease[],
+  AnimalDiseaseResponse[],
   string,
   { rejectValue: ErrorResponse }
 >('animalDisease/getAll', async (animalId, { getState, rejectWithValue }) => {
@@ -54,7 +54,7 @@ export const getAnimalDiseases = createAsyncThunk<
 })
 
 export const createAnimalDisease = createAsyncThunk<
-  AnimalDisease,
+  AnimalDiseaseResponse,
   { animalId: string; diseaseData: AnimalDiseaseData },
   { rejectValue: ErrorResponse }
 >(
@@ -101,7 +101,7 @@ export const createAnimalDisease = createAsyncThunk<
 )
 
 export const getAnimalDiseaseById = createAsyncThunk<
-  AnimalDisease,
+  AnimalDiseaseResponse,
   { animalId: string; diseaseId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -144,7 +144,7 @@ export const getAnimalDiseaseById = createAsyncThunk<
 )
 
 export const updateAnimalDisease = createAsyncThunk<
-  AnimalDisease,
+  AnimalDiseaseResponse,
   { animalId: string; diseaseId: string; diseaseData: AnimalDiseaseData },
   { rejectValue: ErrorResponse }
 >(

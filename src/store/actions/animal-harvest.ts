@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type {
-  AnimalHarvest,
+  AnimalHarvestResponse,
   AnimalHarvestData,
 } from '@/types/animal-farming'
 import type { ErrorResponse } from '@/types/responses'
@@ -9,7 +9,7 @@ import type { RootState } from '@/store/store'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getAnimalHarvests = createAsyncThunk<
-  AnimalHarvest[],
+  AnimalHarvestResponse[],
   string,
   { rejectValue: ErrorResponse }
 >('animalHarvest/getAll', async (animalId, { getState, rejectWithValue }) => {
@@ -39,7 +39,7 @@ export const getAnimalHarvests = createAsyncThunk<
 })
 
 export const createAnimalHarvest = createAsyncThunk<
-  AnimalHarvest,
+  AnimalHarvestResponse,
   { animalId: string; harvestData: AnimalHarvestData },
   { rejectValue: ErrorResponse }
 >(
@@ -74,7 +74,7 @@ export const createAnimalHarvest = createAsyncThunk<
 )
 
 export const getAnimalHarvestById = createAsyncThunk<
-  AnimalHarvest,
+  AnimalHarvestResponse,
   { animalId: string; harvestId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -107,7 +107,7 @@ export const getAnimalHarvestById = createAsyncThunk<
 )
 
 export const updateAnimalHarvest = createAsyncThunk<
-  AnimalHarvest,
+  AnimalHarvestResponse,
   { animalId: string; harvestId: string; harvestData: AnimalHarvestData },
   { rejectValue: ErrorResponse }
 >(

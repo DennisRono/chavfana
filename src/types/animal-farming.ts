@@ -1,98 +1,203 @@
-export interface AnimalData {
-  projectName: string
-  animalType: string
-  breed: string
-  location: string
-  startDate: string
+export type AnimalHarvestUnit =
+  | 'KILOGRAM'
+  | 'POUND'
+  | 'TON'
+  | 'TONNE'
+  | 'LITRE'
+  | 'GALLON'
+  | 'GRAM'
+
+export type AnimalFeedUnit = 'KILOGRAM' | 'POUND' | 'TON' | 'TONNE' | 'GRAM'
+
+export type AnimalProcessType = 'DEATH' | 'SOLD'
+
+export type AnimalGender = 'MALE' | 'FEMALE'
+
+export type AnimalHousingType = 'BARN' | 'CAGE' | 'FREE_RANGE'
+
+export type AnimalGroupType = 'Group' | 'Individual'
+
+export type HealthStatusType = 'HEALTHY' | 'SICK' | 'DEAD' | 'RECOVERING' | 'PREGNANT'
+
+export interface AnimalDiseaseManagementData {
+  name: string
+  date: string
+  disease: string
+  method: string
 }
 
-export interface IndividualRecord {
-  id: number
-  tagId: string
-  age: string
-  weight: string
-  healthStatus: string
-}
-
-export interface GroupData {
-  startNumber: string
-  currentNumber: string
-  averageAge: string
-  averageWeight: string
-}
-
-
-export type FarmingType = 'individual' | 'group'
-export type HealthStatus = 'healthy' | 'sick' | 'recovering' | 'pregnant'
-export type AnimalType =
-  | 'cattle'
-  | 'sheep'
-  | 'goat'
-  | 'pig'
-  | 'chicken'
-  | 'duck'
-
-/** SLICE TYPES */
-
-
-export interface AnimalGroup {
+export interface AnimalDiseaseManagementResponse {
   id: string
-  type: "Group" | "Individual"
+  name: string
+  date: string
+  disease: string
+  method: string
+}
+
+export interface AnimalDiseaseData {
+  name: string
+  date: string
+  animal: string
+}
+
+export interface AnimalDiseaseResponse {
+  id: string
+  name: string
+  date: string
+  animal: string
+  treatments: AnimalDiseaseManagementResponse[]
+}
+
+export interface AnimalFeedData {
+  animal: string
+  date: string
+  name: string
+  amount: number
+  unit: AnimalFeedUnit
+  nutrients?: {
+    protein?: number
+    fat?: number
+    fiber?: number
+    carbohydrates?: number
+  } | null
+}
+
+export interface AnimalFeedResponse {
+  id: string
+  animal: string
+  date: string
+  name: string
+  amount: number
+  unit: AnimalFeedUnit
+  nutrients: {
+    protein: number
+    fat: number
+    fiber: number
+    carbohydrates: number
+  } | null
+}
+
+export interface AnimalGroupData {
+  type: AnimalGroupType
   group_name: string
-  housing: string
-  animals: any
+  project: string
+  housing: AnimalHousingType
+  group_created_date: string
+  animals?: IndividualAnimalData | GroupAnimalData
+}
+
+export interface AnimalGroupResponse {
+  id: string
+  type: AnimalGroupType
+  group_name: string
+  project: string
+  housing: AnimalHousingType
+  animals: AnimalResponse | GroupAnimalResponse
   group_created_date: string
 }
 
-export interface AnimalDisease {
-  id: string
+export interface IndividualAnimalData {
+  tag: string
+  breed: string
   name: string
-  date: string
-  animal: string
-  treatments?: any[]
+  arrival_date: string
+  birthday: string
+  notes?: string
+  type: string
+  gender: AnimalGender
+  weight: number
+  age: number
 }
 
-export interface AnimalHarvest {
+export interface GroupAnimalData {
+  breed: string
+  name: string
+  arrival_date: string
+  birthday: string
+  notes?: string
+  type: string
+  gender: AnimalGender
+  average_weight: number
+  average_age: number
+  starting_number: number
+}
+
+export interface AnimalResponse {
+  id: string
+  tag: string
+  breed: string
+  name: string
+  arrival_date: string
+  birthday: string
+  notes?: string | null
+  type: string
+  gender: AnimalGender
+  weight: number
+  age: number
+  created_at: string
+  group: string
+  health_status: HealthStatusResponse[]
+  harvests: AnimalHarvestResponse[]
+  processed?: AnimalProcessResponse[]
+}
+
+export interface GroupAnimalResponse {
+  id: string
+  breed: string
+  name: string
+  arrival_date: string
+  birthday: string
+  notes?: string | null
+  type: string
+  gender: AnimalGender
+  average_weight: number
+  average_age: number
+  starting_number: number
+  created_at: string
+  group: string
+  health_status: HealthStatusResponse[]
+  harvests: AnimalHarvestResponse[]
+  processed?: AnimalProcessResponse[]
+}
+
+export interface HealthStatusResponse {
+  id: string
+  status: HealthStatusType
+  created_at: string
+  updated_at: string
+  animal: string
+}
+
+export interface AnimalHarvestData {
+  product: string
+  amount: number
+  unit: AnimalHarvestUnit
+  harvest_notes?: string | null
+  date: string
+  animal: string
+}
+
+export interface AnimalHarvestResponse {
   id: string
   product: string
   amount: number
-  unit: string
+  unit: AnimalHarvestUnit
+  harvest_notes: string | null
   date: string
   animal: string
 }
 
-export interface AnimalProcess {
+export interface AnimalProcessData {
+  date: string
+  type: AnimalProcessType
+  number_of_animal?: number
+  animal: string
+}
+
+export interface AnimalProcessResponse {
   id: string
   date: string
-  type: string
-  number_of_animal: number
+  type: AnimalProcessType
+  number_of_animal?: number
   animal: string
 }
-
-export interface AnimalFeed {
-  animal: string
-  date: string
-  name: string
-  amount: number
-  unit: string
-}
-
-export interface AnimalState {
-  groups: AnimalGroup[]
-  currentGroup: AnimalGroup | null
-  diseases: AnimalDisease[]
-  harvests: AnimalHarvest[]
-  processes: AnimalProcess[]
-  feeds: AnimalFeed[]
-  isLoading: boolean
-  error: string | null
-}
-
-/** ACTIONS TYPES */
-
-export interface AnimalDiseaseManagementData {}
-export interface AnimalDiseaseData {}
-export interface AnimalFeedData {}
-export interface AnimalGroupData {}
-export interface AnimalHarvestData {}
-export interface AnimalProcessData {}

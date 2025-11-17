@@ -1,13 +1,37 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import type { PlantingEvent } from "@/types/plant-farming"
+import type { PlantingEventResponse } from "@/types/plant-farming"
 import type { ErrorResponse } from "@/types/responses"
 import type { RootState } from "@/store/store"
 import type { PlantingEventDialogForm } from "@/schemas/planting-event-dialog"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
+export const getPlantingEvents = createAsyncThunk<PlantingEventResponse[], string, { rejectValue: ErrorResponse }>(
+  "plantingEvent/getAll",
+  async (projectId, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState
+      const response = await fetch(`${BASE_URL}/api/projects/${projectId}/planting-events/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${state?.auth?.access_token}`,
+        },
+      })
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json()
+        return rejectWithValue(errorData)
+      }
+      return await response.json()
+    } catch (error) {
+      return rejectWithValue({
+        message: "Failed to fetch planting events. Please try again.",
+      })
+    }
+  }
+)
+
 export const createPlantingEvent = createAsyncThunk<
-  PlantingEvent,
+  PlantingEventResponse,
   { projectId: string; data: PlantingEventDialogForm },
   { rejectValue: ErrorResponse }
 >("plantingEvent/create", async ({ projectId, data }, { getState, rejectWithValue }) => {
@@ -22,7 +46,7 @@ export const createPlantingEvent = createAsyncThunk<
       stage: data.stage,
       type: data.type,
       notes: data.notes || null,
-      species: [], // Species will be added separately
+      species: [],
     }
 
     const response = await fetch(`${BASE_URL}/api/projects/${projectId}/planting-events/`, {
@@ -48,7 +72,7 @@ export const createPlantingEvent = createAsyncThunk<
 })
 
 export const getPlantingEventById = createAsyncThunk<
-  PlantingEvent,
+  PlantingEventResponse,
   { projectId: string; eventId: string },
   { rejectValue: ErrorResponse }
 >("plantingEvent/getById", async ({ projectId, eventId }, { getState, rejectWithValue }) => {
@@ -75,7 +99,7 @@ export const getPlantingEventById = createAsyncThunk<
 })
 
 export const updatePlantingEvent = createAsyncThunk<
-  PlantingEvent,
+  PlantingEventResponse,
   { projectId: string; eventId: string; data: PlantingEventDialogForm },
   { rejectValue: ErrorResponse }
 >("plantingEvent/update", async ({ projectId, eventId, data }, { getState, rejectWithValue }) => {

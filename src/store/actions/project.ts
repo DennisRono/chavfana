@@ -217,7 +217,7 @@ export const searchProjects = createAsyncThunk<
     const headers = getAuthHeader(state)
 
     const response = await fetch(
-      `${BASE_URL}/api/projects/search/?search=${encodeURIComponent(
+      `${BASE_URL}/api/projects/filter?search=${encodeURIComponent(
         query.search || ''
       )}&page=${encodeURIComponent(query.page || 1)}`,
       {

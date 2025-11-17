@@ -1,40 +1,52 @@
-folder and file structure example
+Folder structure for: D:\freelance\chavfana
 
-in the app page.tsx files should actually do a dynamic import and the actual implementation of a page should be in the features/ folder
-
-example of a page.tsx file should follow this structure
-
-import React from 'react'
-import dynamic from 'next/dynamic'
-import Loader from '@/components/shared/loader'
-
-const DashboardView = dynamic(() => import('@/features/dashboard/index'), {
-  ssr: true,
-  loading: () => <Loader />,
-})
-
-const DashboardPage = () => {
-  return <DashboardView />
-}
-
-export default DashboardPage
-
-below is an example of a folder structure that this project should atlest look or follow
 ├── .env
 ├── .gitignore
 ├── README.md
 ├── components.json
 ├── eslint.config.mjs
+├── folder_structure.txt
 ├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.mjs
 ├── public
+│   ├── advanced-farming-machine-efficiently-harvests-600nw-2485762927.webp
+│   ├── automated-irrigation-system-watering-green-plants-.jpg
+│   ├── autotrac-vision_sprayerincorn-large.webp
+│   ├── drone-flying-over-green-crops-field-for-monitoring.jpg
+│   ├── farmer-counting-money-with-calculator-and-farm-pro.jpg
+│   ├── farmer-using-tablet-in-green-crop-field-with-plant.jpg
+│   ├── favicon.ico
+│   ├── future of farming.png
+│   ├── happy-african-farmers-working-together-in-green-ve.jpg
+│   ├── istockphoto-1484751132-612x612.jpg
+│   ├── istockphoto-613321162-612x612.jpg
+│   ├── manufacturing-of-farming-equipment.png
+│   ├── modern-farm-with-green-fields-and-farming-equipmen.jpg
+│   ├── modern-farming-truck-loading-fresh-vegetables-and-.jpg
+│   ├── modern-tractor-with-gps-technology-working-in-larg.jpg
+│   ├── particle-lines-futuristic-gradient-background.jpg
+│   ├── pexels-pixabay-163752-scaled.jpg
 ├── src
 │   ├── app
 │   │   ├── (protected)
 │   │   │   ├── analytics
+│   │   │   │   ├── page.tsx
+│   │   │   ├── animal-farming
+│   │   │   │   ├── page.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── plant-farming
+│   │   │   │   ├── page.tsx
+│   │   │   ├── profile
+│   │   │   │   ├── page.tsx
+│   │   │   ├── project
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── page.tsx
+│   │   │   ├── projects
 │   │   │   │   ├── page.tsx
 │   │   ├── (public)
 │   │   │   ├── (auth)
@@ -75,6 +87,24 @@ below is an example of a folder structure that this project should atlest look o
 │   │   │   ├── table.tsx
 │   │   ├── ui
 │   │   │   ├── alert-dialog.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── command.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── pagination.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── sonner.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── textarea.tsx
 │   ├── config
 │   │   ├── app_info.json
 │   ├── constants
@@ -92,6 +122,45 @@ below is an example of a folder structure that this project should atlest look o
 │   │   │   │   ├── group-animal-form.tsx
 │   │   │   │   ├── individual-animal-row.tsx
 │   │   │   ├── index.tsx
+│   │   ├── auth
+│   │   │   ├── forgot-password
+│   │   │   │   ├── index.tsx
+│   │   │   ├── login
+│   │   │   │   ├── index.tsx
+│   │   │   ├── password-reset-email
+│   │   │   │   ├── index.tsx
+│   │   │   ├── password-reset-otp
+│   │   │   │   ├── index.tsx
+│   │   │   ├── reset-confirm
+│   │   │   │   ├── index.tsx
+│   │   │   ├── verify-email
+│   │   │   │   ├── index.tsx
+│   │   │   ├── verify-phone
+│   │   │   │   ├── index.tsx
+│   │   ├── dashboard
+│   │   │   ├── index.tsx
+│   │   ├── plant-farming
+│   │   │   ├── components
+│   │   │   │   ├── species-row.tsx
+│   │   │   ├── index.tsx
+│   │   ├── project
+│   │   │   ├── components
+│   │   │   │   ├── add-disease-dialog.tsx
+│   │   │   │   ├── add-health-record.tsx
+│   │   │   │   ├── add-process-dialog.tsx
+│   │   │   │   ├── animal-details-dialog.tsx
+│   │   │   │   ├── animal-group-dialog.tsx
+│   │   │   │   ├── animal-group-list.tsx
+│   │   │   │   ├── edit-project-dialog.tsx
+│   │   │   │   ├── log-feeding.tsx
+│   │   │   │   ├── planting-event-dialog.tsx
+│   │   │   │   ├── planting-event-list.tsx
+│   │   │   │   ├── project-details-card.tsx
+│   │   │   │   ├── project-header.tsx
+│   │   │   │   ├── quick-actions-card.tsx
+│   │   │   │   ├── record-harvest-dialog.tsx
+│   │   │   │   ├── update-soil-data-dialog.tsx
+│   │   │   ├── index.tsx
 │   ├── hooks
 │   │   ├── use-debounced.ts
 │   │   ├── use-user-location.ts
@@ -106,24 +175,65 @@ below is an example of a folder structure that this project should atlest look o
 │   │   ├── quick-actions.ts
 │   ├── store
 │   │   ├── actions
+│   │   │   ├── ENDPOINTS.md
 │   │   │   ├── address.ts
+│   │   │   ├── animal-disease-management.ts
+│   │   │   ├── animal-disease.ts
+│   │   │   ├── animal-feeds.ts
+│   │   │   ├── animal-group.ts
+│   │   │   ├── animal-harvest.ts
+│   │   │   ├── animal-process.ts
+│   │   │   ├── auth.ts
+│   │   │   ├── farm.ts
+│   │   │   ├── fertility-spread.ts
+│   │   │   ├── finance.ts
+│   │   │   ├── plant-disease-management.ts
+│   │   │   ├── plant-disease.ts
+│   │   │   ├── plant-harvest.ts
+│   │   │   ├── plant-pest-management.ts
+│   │   │   ├── plant-pest.ts
+│   │   │   ├── planting-event.ts
+│   │   │   ├── plot.ts
+│   │   │   ├── project.ts
+│   │   │   ├── soil.ts
+│   │   │   ├── species.ts
+│   │   │   ├── user.ts
 │   │   ├── hooks.ts
 │   │   ├── selectors
 │   │   │   ├── animal.ts
+│   │   │   ├── auth.ts
+│   │   │   ├── plant.ts
+│   │   │   ├── project.ts
+│   │   │   ├── search.ts
+│   │   │   ├── user.ts
 │   │   ├── services
 │   │   │   ├── auth-api.ts
+│   │   │   ├── auth-middleware.ts
 │   │   ├── slices
 │   │   │   ├── animal-slice.ts
+│   │   │   ├── auth-slice.ts
+│   │   │   ├── plant-slice.ts
+│   │   │   ├── project-slice.ts
+│   │   │   ├── search-slice.ts
+│   │   │   ├── user-slice.ts
 │   │   ├── store.ts
 │   │   ├── useWebStorage.ts
 │   ├── styles
 │   │   ├── globals.css
 │   ├── types
+│   │   ├── address.ts
+│   │   ├── animal-farming.ts
+│   │   ├── auth.ts
+│   │   ├── farm.ts
+│   │   ├── finance.ts
+│   │   ├── index.ts
+│   │   ├── plant-farming.ts
+│   │   ├── project.ts
 │   │   ├── responses.ts
+│   │   ├── soil.ts
+│   │   ├── species.ts
+│   │   ├── user.ts
 │   ├── utils
 │   │   ├── functions.ts
+├── test.py
 ├── tsconfig.json
-
-
-you can add things that i may not have accounted for
-

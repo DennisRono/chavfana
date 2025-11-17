@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type {
-  PlantDisease,
+  PlantDiseaseResponse,
   PlantDiseaseData,
 } from '@/types/plant-farming'
 import type { ErrorResponse } from '@/types/responses'
@@ -9,7 +9,7 @@ import type { RootState } from '@/store/store'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getPlantDiseaseById = createAsyncThunk<
-  PlantDisease,
+  PlantDiseaseResponse,
   { speciesId: string; diseaseId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -42,7 +42,7 @@ export const getPlantDiseaseById = createAsyncThunk<
 )
 
 export const updatePlantDisease = createAsyncThunk<
-  PlantDisease,
+  PlantDiseaseResponse,
   { speciesId: string; diseaseId: string; diseaseData: PlantDiseaseData },
   { rejectValue: ErrorResponse }
 >(
@@ -113,7 +113,7 @@ export const deletePlantDisease = createAsyncThunk<
 )
 
 export const getPlantDiseases = createAsyncThunk<
-  PlantDisease[],
+  PlantDiseaseResponse[],
   string,
   { rejectValue: ErrorResponse }
 >('plantDisease/getAll', async (speciesId, { getState, rejectWithValue }) => {
@@ -143,7 +143,7 @@ export const getPlantDiseases = createAsyncThunk<
 })
 
 export const createPlantDisease = createAsyncThunk<
-  PlantDisease,
+  PlantDiseaseResponse,
   { speciesId: string; diseaseData: PlantDiseaseData },
   { rejectValue: ErrorResponse }
 >(

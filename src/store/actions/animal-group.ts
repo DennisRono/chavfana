@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
-import type { AnimalGroup } from '@/types/animal-farming'
+import type { AnimalGroupResponse } from '@/types/animal-farming'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
 import type { AnimalGroupDialogForm } from '@/schemas/animal-group-dialog'
@@ -7,7 +7,7 @@ import type { AnimalGroupDialogForm } from '@/schemas/animal-group-dialog'
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export const getAnimalGroups = createAsyncThunk<
-  AnimalGroup[],
+  AnimalGroupResponse[],
   string,
   { rejectValue: ErrorResponse }
 >('animalGroup/getAll', async (projectId, { getState, rejectWithValue }) => {
@@ -37,7 +37,7 @@ export const getAnimalGroups = createAsyncThunk<
 })
 
 export const createAnimalGroup = createAsyncThunk<
-  AnimalGroup,
+  AnimalGroupResponse,
   { projectId: string; data: AnimalGroupDialogForm },
   { rejectValue: ErrorResponse }
 >(
@@ -72,7 +72,7 @@ export const createAnimalGroup = createAsyncThunk<
 )
 
 export const getAnimalGroupById = createAsyncThunk<
-  AnimalGroup,
+  AnimalGroupResponse,
   { projectId: string; groupId: string },
   { rejectValue: ErrorResponse }
 >(
@@ -105,7 +105,7 @@ export const getAnimalGroupById = createAsyncThunk<
 )
 
 export const updateAnimalGroup = createAsyncThunk<
-  AnimalGroup,
+  AnimalGroupResponse,
   { projectId: string; groupId: string; data: AnimalGroupDialogForm },
   { rejectValue: ErrorResponse }
 >(
