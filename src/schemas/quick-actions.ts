@@ -1,31 +1,39 @@
-import { z } from "zod"
+import { z } from 'zod'
 
 const dateFormat = /^\d{4}-\d{2}-\d{2}$/
 
 // Feeding Schema
 export const logFeedingSchema = z.object({
-  animal_group_id: z.string().uuid("Invalid animal group ID"),
-  feed_type: z.string().min(1, "Feed type is required").max(50),
-  quantity: z.number().min(0.01, "Quantity must be greater than 0"),
-  unit: z.enum(["KG", "LB", "LITER", "GALLON"]),
-  feeding_date: z.string().regex(dateFormat, "Invalid date format"),
-  notes: z.string().max(500).optional(),
+  animal_id: z.uuid('Invalid animal ID'),
+  name: z.string().min(1, 'Feed name is required').max(50),
+  date: z.string().regex(dateFormat, 'Invalid date format'),
+  amount: z.number().min(0.01, 'Amount must be greater than 0'),
+  unit: z.enum(['KILOGRAM', 'POUND', 'LITER', 'GALLON']),
+  nutrients: z.object({
+    protein: z.number().min(0, 'Protein cannot be negative').default(0),
+    carbohydrates: z
+      .number()
+      .min(0, 'Carbohydrates cannot be negative')
+      .default(0),
+    minerals: z.number().min(0, 'Minerals cannot be negative').default(0),
+    unit: z.enum(['KILOGRAM']),
+  }),
 })
 
 // Health Record Schema
 export const addHealthRecordSchema = z.object({
-  animal_id: z.string().uuid("Invalid animal ID"),
-  status: z.enum(["HEALTHY", "SICK", "DEAD"]),
+  animal_id: z.string().uuid('Invalid animal ID'),
+  status: z.enum(['HEALTHY', 'SICK', 'DEAD']),
   notes: z.string().max(500).optional(),
 })
 
 // Harvest Schema
 export const recordHarvestSchema = z.object({
-  planting_event_id: z.string().uuid("Invalid planting event ID"),
-  amount: z.number().min(0.01, "Amount must be greater than 0"),
-  unit: z.enum(["KILOGRAM", "POUND", "LITER", "GALLON", "BUSHEL", "TON"]),
-  harvest_date: z.string().regex(dateFormat, "Invalid date format"),
-  quality: z.enum(["EXCELLENT", "GOOD", "FAIR", "POOR"]),
+  planting_event_id: z.string().uuid('Invalid planting event ID'),
+  amount: z.number().min(0.01, 'Amount must be greater than 0'),
+  unit: z.enum(['KILOGRAM', 'POUND', 'LITER', 'GALLON', 'BUSHEL', 'TON']),
+  harvest_date: z.string().regex(dateFormat, 'Invalid date format'),
+  quality: z.enum(['EXCELLENT', 'GOOD', 'FAIR', 'POOR']),
 })
 
 // Soil Data Schema

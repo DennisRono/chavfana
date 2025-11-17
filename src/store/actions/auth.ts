@@ -58,6 +58,37 @@ export const register = createAsyncThunk<
   }
 })
 
+
+export const refreshToken = createAsyncThunk<
+  AuthResponse,
+  { refresh_token: string },
+  { rejectValue: ErrorResponse }
+>('auth/refreshToken', async ({ refresh_token }, { rejectWithValue }) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth/token/refresh`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh_token }),
+      }
+    )
+
+    if (!response.ok) {
+      const errorData: ErrorResponse = await response.json()
+      return rejectWithValue(errorData)
+    }
+
+    return await response.json()
+  } catch (error) {
+    return rejectWithValue({
+      message: 'Token refresh failed. Please try again.',
+    })
+  }
+})
+
 export const verifyToken = createAsyncThunk<
   AuthResponse,
   { token: string },

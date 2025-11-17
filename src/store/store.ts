@@ -5,16 +5,17 @@ import { authApi } from '@/store/services/auth-api'
 import { persistReducer, persistStore } from 'redux-persist'
 import storage from './useWebStorage'
 import authReducer from '@/store/slices/auth-slice'
-import projectReducer from "@/store/slices/project-slice"
-import animalReducer from "@/store/slices/animal-slice"
-import plantReducer from "@/store/slices/plant-slice"
-import userReducer from "@/store/slices/user-slice"
-import searchReducer from "@/store/slices/search-slice"
+import projectReducer from '@/store/slices/project-slice'
+import animalReducer from '@/store/slices/animal-slice'
+import plantReducer from '@/store/slices/plant-slice'
+import userReducer from '@/store/slices/user-slice'
+import searchReducer from '@/store/slices/search-slice'
+import { authMiddleware } from './services/auth-middleware'
 
 const persistConfig = {
   key: 'root',
   storage,
-  blacklist: ["authApi"],
+  blacklist: ['authApi'],
 }
 
 const allReducers = combineReducers({
@@ -38,7 +39,9 @@ export const makeStore = () => {
         serializableCheck: {
           ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
         },
-      }).concat(authApi.middleware as Middleware<{}, RootState>),
+      })
+        .concat(authApi.middleware as Middleware<{}, RootState>)
+        .concat(authMiddleware),
   })
 
   setupListeners(store.dispatch)

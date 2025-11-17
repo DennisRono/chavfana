@@ -27,6 +27,20 @@ const authSlice = createSlice({
     setAuthState: (state, action: PayloadAction<Partial<AuthState>>) => {
       return { ...state, ...action.payload }
     },
+    updateTokens: (
+      state,
+      action: PayloadAction<{
+        access_token: string
+        refresh_token?: string
+        expires_at?: string
+      }>
+    ) => {
+      state.access_token = action.payload.access_token
+      if (action.payload.refresh_token) {
+        state.refresh_token = action.payload.refresh_token
+      }
+    },
+    clearAuthState: () => initialState
   },
   extraReducers: (builder) => {
     builder
@@ -82,7 +96,7 @@ const authSlice = createSlice({
   },
 })
 
-export const { resetAuthError, updateUserProfile, setAuthState } =
+export const { resetAuthError, updateUserProfile, setAuthState, updateTokens, clearAuthState } =
   authSlice.actions
 
 export default authSlice.reducer

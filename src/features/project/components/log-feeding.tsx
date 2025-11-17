@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, Controller, type Resolver } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Dialog,
   DialogContent,
@@ -9,18 +9,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import type { ProjectResponse } from "@/types/project"
-import { useAppDispatch } from "@/store/hooks"
-import { createAnimalFeed } from "@/store/actions/animal-feeds"
-import { toast } from "sonner"
-import { logFeedingSchema, type LogFeedingForm } from "@/schemas/quick-actions"
-import { useMemo } from "react"
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import type { ProjectResponse } from '@/types/project'
+import { useAppDispatch } from '@/store/hooks'
+import { createAnimalFeed } from '@/store/actions/animal-feeds'
+import { toast } from 'sonner'
+import { logFeedingSchema, type LogFeedingForm } from '@/schemas/quick-actions'
+import { useMemo, useState } from 'react'
 
 interface LogFeedingProps {
   open: boolean
@@ -29,112 +34,89 @@ interface LogFeedingProps {
   onSuccess: () => void
 }
 
-export default function LogFeeding({ open, onOpenChange, project, onSuccess }: LogFeedingProps) {
+export default function LogFeeding({
+  open,
+  onOpenChange,
+  project,
+  onSuccess,
+}: LogFeedingProps) {
   const dispatch = useAppDispatch()
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LogFeedingForm>({
-    resolver: zodResolver(logFeedingSchema),
+    resolver: zodResolver(logFeedingSchema) as Resolver<LogFeedingForm>,
     defaultValues: {
-      animal_group_id: "",
-      feed_type: "",
-      quantity: 0,
-      unit: "KG",
-      feeding_date: new Date().toISOString().split("T")[0],
-      notes: "",
+      animal_id: '',
+      name: '',
+      date: new Date().toISOString().split('T')[0],
+      amount: 0,
+      unit: 'KILOGRAM',
+      nutrients: {
+        protein: 0,
+        carbohydrates: 0,
+        minerals: 0,
+        unit: 'KILOGRAM',
+      },
     },
   })
 
   const animals = useMemo(() => {
-    if (!project || typeof project !== "object") {
-      return []
-    }
+    if (!project || typeof project !== 'object') return []
+    if (project.type !== 'AnimalKeepingProject') return []
+    if (!Array.isArray(project.animal_group)) return []
 
-    if (project.type !== "AnimalKeepingProject") {
-      return []
-    }
-
-    if (!Array.isArray(project.animal_group)) {
-      return []
-    }
-
-    return project.animal_group
-      .filter((group) => group && typeof group === "object" && group.animals && group.animals.id)
-      .flatMap((group) => {
-        const animal = group.animals
-        if (!animal || typeof animal !== "object") {
-          return []
-        }
-
-        return {
-          id: animal.id ?? "",
-          name: animal.name || animal.tag || "Unknown Animal",
-          groupName: group.group_name ?? "Unnamed Group",
-        }
-      })
+    return project.animal_group.flatMap((group) => {
+      const animal = group?.animals
+      if (!animal || typeof animal !== 'object') return []
+      return {
+        id: animal.id ?? '',
+        name: animal.name || animal.tag || 'Unknown Animal',
+        groupName: group.group_name ?? 'Unnamed Group',
+      }
+    })
   }, [project])
 
   const onSubmit = async (data: LogFeedingForm) => {
+    setIsLoading(true)
     try {
-      if (!project || typeof project !== "object") {
-        toast.error("Error", { description: "Invalid project data" })
-        return
-      }
-
-      if (!project.id || typeof project.id !== "string") {
-        toast.error("Error", { description: "Invalid project ID" })
-        return
-      }
-
-      if (!data || typeof data !== "object") {
-        toast.error("Error", { description: "Invalid feeding data" })
-        return
-      }
-
-      if (!data.animal_group_id || typeof data.animal_group_id !== "string") {
-        toast.error("Error", { description: "Please select an animal" })
-        return
-      }
-
-      if (typeof data.quantity !== "number" || data.quantity <= 0) {
-        toast.error("Error", { description: "Invalid feeding quantity" })
-        return
-      }
-
-      if (!data.feed_type || typeof data.feed_type !== "string") {
-        toast.error("Error", { description: "Please enter feed type" })
-        return
-      }
-
-      if (!data.feeding_date || typeof data.feeding_date !== "string") {
-        toast.error("Error", { description: "Please select a feeding date" })
-        return
-      }
-
-      await dispatch(
+      const result = await dispatch(
         createAnimalFeed({
-          animalId: data.animal_group_id,
+          animalId: data.animal_id,
           feedData: {
-            date: data.feeding_date,
-            name: data.feed_type,
-            amount: data.quantity,
+            animal: data.animal_id,
+            date: data.date,
+            name: data.name,
+            amount: data.amount,
             unit: data.unit,
-            animal: data.animal_group_id,
+            nutrients: {
+              protein: data.nutrients.protein,
+              carbohydrates: data.nutrients.carbohydrates,
+              minerals: data.nutrients.minerals,
+              unit: data.nutrients.unit,
+            },
           },
-        }),
-      ).unwrap()
+        })
+      )
 
-      toast.success("Success", { description: "Feeding record logged successfully" })
-      reset()
-      onSuccess()
-      onOpenChange(false)
+      // Check if the dispatch was successful
+      if (result.payload) {
+        toast.success('Feeding record logged successfully')
+        reset()
+        onSuccess()
+        onOpenChange(false)
+      }
     } catch (err: any) {
-      const errorMessage = err?.message || err?.detail || "Failed to log feeding record"
-      toast.error("Error", { description: errorMessage })
+      console.error('[v0] Submit error:', err)
+      toast.error('Error', {
+        description: err?.message || 'Failed to log feeding record',
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -143,145 +125,188 @@ export default function LogFeeding({ open, onOpenChange, project, onSuccess }: L
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Log Feeding</DialogTitle>
-          <DialogDescription>Record a feeding event for your animals</DialogDescription>
+          <DialogDescription>
+            Record a feeding event for your animals
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="animal_group_id">Animal</Label>
+            <Label htmlFor="animal_id">Animal</Label>
             <Controller
-              name="animal_group_id"
+              name="animal_id"
               control={control}
               render={({ field }) => (
-                <>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose an animal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {animals.length > 0 ? (
-                        animals.map((animal) => (
-                          <SelectItem key={animal.id} value={animal.id}>
-                            {animal.name} ({animal.groupName})
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          No animals available
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an animal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {animals.length > 0 ? (
+                      animals.map((animal) => (
+                        <SelectItem key={animal.id} value={animal.id}>
+                          {animal.name} ({animal.groupName})
                         </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {errors.animal_group_id && (
-                    <p className="text-sm text-destructive">{errors.animal_group_id.message}</p>
-                  )}
-                </>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No animals available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
               )}
             />
+            {errors.animal_id && (
+              <p className="text-sm text-destructive">
+                {errors.animal_id.message}
+              </p>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="feed_type">Feed Type</Label>
+              <Label htmlFor="name">Feed Name</Label>
               <Controller
-                name="feed_type"
+                name="name"
                 control={control}
                 render={({ field }) => (
-                  <>
-                    <Input id="feed_type" placeholder="e.g., Corn, Hay, Pellets" {...field} disabled={isSubmitting} />
-                    {errors.feed_type && <p className="text-sm text-destructive">{errors.feed_type.message}</p>}
-                  </>
+                  <Input
+                    id="name"
+                    placeholder="e.g., Corn, Hay, Pellets"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 )}
               />
+              {errors.name && (
+                <p className="text-sm text-destructive">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="feeding_date">Feeding Date</Label>
+              <Label htmlFor="date">Feeding Date</Label>
               <Controller
-                name="feeding_date"
+                name="date"
                 control={control}
                 render={({ field }) => (
-                  <>
-                    <Input id="feeding_date" type="date" {...field} disabled={isSubmitting} />
-                    {errors.feeding_date && <p className="text-sm text-destructive">{errors.feeding_date.message}</p>}
-                  </>
+                  <Input
+                    id="date"
+                    type="date"
+                    {...field}
+                    disabled={isLoading}
+                  />
                 )}
               />
+              {errors.date && (
+                <p className="text-sm text-destructive">
+                  {errors.date.message}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
+              <Label htmlFor="amount">Amount</Label>
               <Controller
-                name="quantity"
+                name="amount"
                 control={control}
                 render={({ field }) => (
-                  <>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      step="0.01"
-                      placeholder="Amount of feed"
-                      {...field}
-                      disabled={isSubmitting}
-                      onChange={(e) => field.onChange(Number.parseFloat(e.target.value) || 0)}
-                    />
-                    {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
-                  </>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Amount of feed"
+                    {...field}
+                    disabled={isLoading}
+                    onChange={(e) =>
+                      field.onChange(Number.parseFloat(e.target.value) || 0)
+                    }
+                  />
                 )}
               />
+              {errors.amount && (
+                <p className="text-sm text-destructive">
+                  {errors.amount.message}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="unit">Unit</Label>
               <Controller
                 name="unit"
                 control={control}
                 render={({ field }) => (
-                  <>
-                    <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="KG">Kilogram (kg)</SelectItem>
-                        <SelectItem value="LB">Pound (lb)</SelectItem>
-                        <SelectItem value="LITER">Liter (L)</SelectItem>
-                        <SelectItem value="GALLON">Gallon (gal)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.unit && <p className="text-sm text-destructive">{errors.unit.message}</p>}
-                  </>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="KILOGRAM">Kilogram (kg)</SelectItem>
+                      <SelectItem value="POUND">Pound (lb)</SelectItem>
+                      <SelectItem value="LITER">Liter (L)</SelectItem>
+                      <SelectItem value="GALLON">Gallon (gal)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 )}
               />
+              {errors.unit && (
+                <p className="text-sm text-destructive">
+                  {errors.unit.message}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Controller
-              name="notes"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <Textarea
-                    id="notes"
-                    placeholder="Add any relevant notes about the feeding..."
-                    rows={3}
-                    {...field}
-                    disabled={isSubmitting}
-                  />
-                  {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
-                </>
-              )}
-            />
+          <div className="grid gap-4 sm:grid-cols-3">
+            {['protein', 'carbohydrates', 'minerals'].map((key) => (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={key}>
+                  {key.charAt(0).toUpperCase() + key.slice(1)} (kg)
+                </Label>
+                <Controller
+                  name={`nutrients.${key}` as any}
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id={key}
+                      type="number"
+                      step="0.01"
+                      {...field}
+                      disabled={isLoading}
+                      onChange={(e) =>
+                        field.onChange(Number.parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  )}
+                />
+              </div>
+            ))}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Log Feeding"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Log Feeding'}
             </Button>
           </DialogFooter>
         </form>
