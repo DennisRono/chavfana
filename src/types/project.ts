@@ -1,4 +1,5 @@
 import { AnimalProjectForm } from '@/schemas/animal-farming'
+import { AnimalResponse } from './animal-farming'
 
 export interface Location {
   country: string
@@ -27,7 +28,7 @@ export interface IndividualAnimal {
   type: string
   gender: 'MALE' | 'FEMALE'
   weight: number
-  age: number | string
+  age: number
 }
 
 export interface GroupAnimal {
@@ -190,6 +191,7 @@ export interface ProjectResponse {
     animals: AnimalType
     group_created_date: string
   }[]
+  animal?: AnimalResponse
   planting_events?: {
     id: string
     project: string

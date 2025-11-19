@@ -20,16 +20,20 @@ import { AppDispatch } from "@/store/store"
 import { toast } from "sonner"
 import { createPlantHarvest } from "@/store/actions/plant-harvest"
 import { recordHarvestSchema, type RecordHarvestForm } from "@/schemas/quick-actions"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { PlantHarvestData } from "@/types/plant-farming"
 
 interface RecordHarvestProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   project: ProjectResponse | null
+  eventid: string
+  speciesid: string
   onSuccess: () => void
 }
 
-export default function RecordHarvest({ open, onOpenChange, project, onSuccess }: RecordHarvestProps) {
+export default function RecordHarvest({ open, onOpenChange, project, eventid, speciesid, onSuccess }: RecordHarvestProps) {
+  const [isSubmitting, setIsLoading] = useState<boolean>(false)
   const dispatch = useAppDispatch<AppDispatch>()
 
   const {
@@ -37,11 +41,11 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
     handleSubmit,
     reset,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RecordHarvestForm>({
     resolver: zodResolver(recordHarvestSchema),
     defaultValues: {
-      planting_event_id: "",
+      planting_event_id: eventid,
       amount: 0,
       unit: "KILOGRAM",
       harvest_date: new Date().toISOString().split("T")[0],
@@ -49,26 +53,6 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
     },
   })
 
-  const plantingEvents = useMemo(() => {
-    if (!project || typeof project !== "object") {
-      return []
-    }
-
-    if (project.type !== "PlantingProject") {
-      return []
-    }
-
-    if (!Array.isArray(project.planting_events)) {
-      return []
-    }
-
-    return project.planting_events
-      .filter((event) => event && typeof event === "object" && event.id)
-      .map((event) => ({
-        id: event.id ?? "",
-        name: event.name ?? "Unnamed Event",
-      }))
-  }, [project])
 
   const selectedEventId = watch("planting_event_id")
   const selectedEvent = useMemo(() => {
@@ -86,6 +70,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
   }, [selectedEvent?.species])
 
   const onSubmit = async (data: RecordHarvestForm) => {
+    setIsLoading(true)
     if (!project || typeof project !== "object") {
       toast.error("Error", { description: "Invalid project data" })
       return
@@ -126,7 +111,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
 
     dispatch(createPlantHarvest({
       speciesId,
-      harvestData: cleanedHarvestData,
+      harvestData: cleanedHarvestData as PlantHarvestData,
     }))
       .unwrap()
       .then(() => {
@@ -138,6 +123,8 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
       .catch((err: any) => {
         const errorMessage = err?.message || err?.detail || "Failed to record harvest"
         toast.error("Error", { description: errorMessage })
+      }).finally(()=>{
+        setIsLoading(false)
       })
   }
 
@@ -150,38 +137,7 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="planting_event_id">Planting Event</Label>
-            <Controller
-              name="planting_event_id"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={isSubmitting}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a planting event" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {plantingEvents.length > 0 ? (
-                        plantingEvents.map((event) => (
-                          <SelectItem key={event.id} value={event.id}>
-                            {event.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          No planting events available
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {errors.planting_event_id && (
-                    <p className="text-sm text-destructive">{errors.planting_event_id.message}</p>
-                  )}
-                </>
-              )}
-            />
-          </div>
+ 
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

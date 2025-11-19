@@ -118,8 +118,12 @@ export function IndividualAnimalRow({
         <div className="space-y-2">
           <Label>Age</Label>
           <Input
-            placeholder="24 months"
-            {...form.register('animal_group.animals.age')}
+            placeholder="24"
+            type='number'
+            defaultValue={0}
+            {...form.register('animal_group.animals.age', {
+              valueAsNumber: true,
+            })}
           />
           {formType === 'Individual' &&
             form.formState.errors.animal_group?.animals?.age && (

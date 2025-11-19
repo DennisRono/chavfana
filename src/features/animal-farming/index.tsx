@@ -29,12 +29,24 @@ import {
   animalProjectSchema,
 } from '@/schemas/animal-farming'
 import { useRouter } from 'next/navigation'
+import {
+  AnimalGroup,
+  AnimalKeepingProject,
+  GroupAnimal,
+  IndividualAnimal,
+  ProjectData,
+} from '@/types/project'
 
 export default function AnimalFarmingForm() {
   const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
   const [isLoading, setIsLoading] = useState(false)
-  const { coordinates, error, permissionState, isLoading: locationLoading, requestLocation } =
-    useUserLocation()
+  const {
+    coordinates,
+    error,
+    permissionState,
+    isLoading: locationLoading,
+    requestLocation,
+  } = useUserLocation()
   const dispatch = useAppDispatch<AppDispatch>()
   const router = useRouter()
 
@@ -62,24 +74,21 @@ export default function AnimalFarmingForm() {
           arrival_date: new Date().toISOString().split('T')[0],
           birthday: '',
           type: '',
-          gender: 'MALE',
+          gender: 'MALE' as const,
           weight: 0,
-          age: '',
+          age: 0,
           notes: '',
         },
       },
     },
   })
 
-  console.log(form.formState.errors)
-  console.log(form.getValues())
-
   useEffect(() => {
     if (permissionState === 'granted' && coordinates) {
       form.setValue('location.coordinate.latitude', coordinates.latitude)
       form.setValue('location.coordinate.longitude', coordinates.longitude)
     }
-  }, [permissionState, coordinates, form.setValue])
+  }, [permissionState, coordinates, form])
 
   const handleLocationRequest = useCallback(async () => {
     try {
@@ -100,69 +109,69 @@ export default function AnimalFarmingForm() {
     }
   }, [requestLocation, coordinates, error])
 
-  const onSubmit = (data: AnimalProjectForm) => {
+  const onSubmit = async (data: AnimalProjectForm) => {
     setIsLoading(true)
-    dispatch(createProject(data))
-      .unwrap()
-      .then((result) => {
-        toast.success('Success', { description: 'Animal project created successfully!' })
-        router.push(`/project/${result.id}`)
+    try {
+      const submitData = {
+        ...data,
+        type: 'AnimalKeepingProject',
+        created_date:
+          data.created_date || new Date().toISOString().split('T')[0],
+
+        animal_group: data.animal_group,
+      }
+
+      const result = await dispatch(
+        createProject(submitData as ProjectData)
+      ).unwrap()
+      toast.success('Success', {
+        description: 'Animal project created successfully!',
       })
-      .catch((error: any) => {
-        toast.error('Error', { description: error?.message || 'Failed to create project. Please try again.' })
+      router.push(`/project/${result.id}`)
+    } catch (error: any) {
+      toast.error('Error', {
+        description:
+          error?.message || 'Failed to create project. Please try again.',
       })
-      .finally(() => {
-        setIsLoading(false)
-      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
     if (formType === 'Individual') {
       form.setValue('animal_group.type', 'Individual')
-      form.setValue('animal_group', {
-        type: 'Individual',
-        group_name: form.watch('animal_group.group_name') || '',
-        housing: form.watch('animal_group.housing') || 'BARN',
-        group_created_date:
-          form.watch('animal_group.group_created_date') ||
-          new Date().toISOString().split('T')[0],
-        animals: {
-          tag: '',
-          breed: '',
-          name: '',
-          arrival_date: new Date().toISOString().split('T')[0],
-          birthday: '',
-          type: '',
-          gender: 'MALE',
-          weight: 0,
-          age: '',
-          notes: '',
-        },
+
+      form.setValue('animal_group.animals', {
+        tag: '',
+        breed: '',
+        name: '',
+        arrival_date: new Date().toISOString().split('T')[0],
+        birthday: '',
+        type: '',
+        gender: 'MALE',
+        weight: 0,
+        age: 0,
+        notes: '',
+        non_field_errors: [],
       })
     } else {
       form.setValue('animal_group.type', 'Group')
-      form.setValue('animal_group', {
-        type: 'Group',
-        group_name: form.watch('animal_group.group_name') || '',
-        housing: form.watch('animal_group.housing') || 'BARN',
-        group_created_date:
-          form.watch('animal_group.group_created_date') ||
-          new Date().toISOString().split('T')[0],
-        animals: {
-          breed: '',
-          name: '',
-          arrival_date: new Date().toISOString().split('T')[0],
-          birthday: '',
-          type: '',
-          gender: 'MALE',
-          average_weight: 0,
-          average_age: 0,
-          starting_number: 0,
-          notes: '',
-        },
+      form.setValue('animal_group.animals', {
+        breed: '',
+        name: '',
+        arrival_date: new Date().toISOString().split('T')[0],
+        birthday: '',
+        type: '',
+        gender: 'MALE',
+        average_weight: 0,
+        average_age: 0,
+        starting_number: 0,
+        notes: '',
+        non_field_errors: [],
       })
     }
-  }, [formType])
+  }, [formType, form])
 
   return (
     <div className="min-h-screen">
@@ -177,6 +186,7 @@ export default function AnimalFarmingForm() {
         </div>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Project Information Card - remains the same */}
           <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm !pt-0">
             <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
               <CardTitle className="text-xl">Project Information</CardTitle>
@@ -211,7 +221,6 @@ export default function AnimalFarmingForm() {
                         <SelectItem value="Planning">Planning</SelectItem>
                         <SelectItem value="Active">Active</SelectItem>
                         <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -236,7 +245,7 @@ export default function AnimalFarmingForm() {
                     </Select>
                   </div>
                   <div className="space-y-2 ">
-                    <Label>Country</Label>
+                    <Label>City</Label>
                     <Select
                       value={form.watch('location.city')}
                       onValueChange={(value) =>
@@ -448,11 +457,10 @@ export default function AnimalFarmingForm() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="BARN">Barn</SelectItem>
-                            <SelectItem value="PASTURE">Pasture</SelectItem>
                             <SelectItem value="CAGE">Cage</SelectItem>
-                            <SelectItem value="PEN">Pen</SelectItem>
-                            <SelectItem value="COOP">Coop</SelectItem>
-                            <SelectItem value="STABLE">Stable</SelectItem>
+                            <SelectItem value="FREE_RANGE">
+                              Free Range
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

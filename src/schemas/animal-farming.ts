@@ -20,8 +20,9 @@ const individualAnimalSchema = z.object({
     error: () => ({ message: 'Invalid gender' }),
   }),
   weight: z.number().min(0, 'Weight cannot be negative'),
-  age: z.string().min(1, 'Age is required'),
+  age: z.number().min(1, 'Age is required'),
   notes: z.string().optional(),
+  non_field_errors: z.array(z.string())
 })
 
 const groupAnimalSchema = z.object({

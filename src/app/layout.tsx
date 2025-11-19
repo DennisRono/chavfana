@@ -3,7 +3,6 @@ import '@/styles/globals.css'
 import companyInfo from '@/config/app_info.json'
 import Script from 'next/script'
 import ReduxProvider from '@/contexts/redux-provider'
-import PublicProvider from '@/contexts/public-provider'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -125,7 +124,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html
+      lang="en"
+      dir="ltr"
+      suppressHydrationWarning
+      className="light"
+      style={{ colorScheme: 'light' }}
+    >
       <body className="bg-[url('/particle-lines-futuristic-gradient-background.jpg')] bg-cover bg-center bg-no-repeat bg-fixed min-h-screen">
         <Script
           id="schema-org"
@@ -187,9 +192,7 @@ export default function RootLayout({
             `,
           }}
         />
-        <ReduxProvider>
-          <PublicProvider>{children}</PublicProvider>
-        </ReduxProvider>
+        <ReduxProvider>{children}</ReduxProvider>
 
         <div className="sr-only">
           <a href="/accessibility">Accessibility Statement</a>

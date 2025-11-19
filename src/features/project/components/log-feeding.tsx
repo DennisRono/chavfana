@@ -151,7 +151,7 @@ export default function LogFeeding({
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="none" disabled>
                         No animals available
                       </SelectItem>
                     )}

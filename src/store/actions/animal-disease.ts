@@ -55,13 +55,13 @@ export const getAnimalDiseases = createAsyncThunk<
 
 export const createAnimalDisease = createAsyncThunk<
   AnimalDiseaseResponse,
-  { animalId: string; diseaseData: AnimalDiseaseData },
+  { animalid: string; diseaseData: AnimalDiseaseData },
   { rejectValue: ErrorResponse }
 >(
   'animalDisease/create',
-  async ({ animalId, diseaseData }, { getState, rejectWithValue }) => {
+  async ({ animalid, diseaseData }, { getState, rejectWithValue }) => {
     try {
-      if (!animalId || typeof animalId !== 'string') {
+      if (!animalid || typeof animalid !== 'string') {
         return rejectWithValue({ message: 'Invalid animal ID' })
       }
       if (!diseaseData || typeof diseaseData !== 'object') {
@@ -72,7 +72,7 @@ export const createAnimalDisease = createAsyncThunk<
       const headers = getAuthHeader(state)
 
       const response = await fetch(
-        `${BASE_URL}/api/project/animal-group/animal/${animalId}/animal-disease`,
+        `${BASE_URL}/api/project/animal-group/animal/${animalid}/animal-disease`,
         {
           method: 'POST',
           headers: {
