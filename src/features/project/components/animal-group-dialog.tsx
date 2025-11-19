@@ -176,7 +176,7 @@ export function AnimalGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {groupId ? 'Edit Animal Group' : 'Create Animal Group'}

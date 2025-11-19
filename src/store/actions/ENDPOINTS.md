@@ -14,7 +14,7 @@ Register a new user account.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "email": "user@example.com",
   "password1": "password123",
@@ -23,15 +23,15 @@ Register a new user account.
   "last_name": "Doe",
   "phone_number": "+1234567890"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "message": "Registration successful"
 }
-```
+\`\`\`
 
 #### `loginUser`
 
@@ -41,25 +41,25 @@ Authenticate user and receive JWT tokens.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "email": "user@example.com",
   "password": "password123"
 }
-```
+\`\`\`
 
 OR
 
-```json
+\`\`\`json
 {
   "phone_number": "+1234567890",
   "password": "password123"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "access": "jwt_access_token",
   "refresh": "jwt_refresh_token",
@@ -68,7 +68,7 @@ OR
   "first_name": "John",
   "last_name": "Doe"
 }
-```
+\`\`\`
 
 #### `verifyToken`
 
@@ -78,19 +78,19 @@ Verify if a JWT token is valid.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "token": "jwt_token_string"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "valid": true
 }
-```
+\`\`\`
 
 #### `sendOTP`
 
@@ -100,19 +100,19 @@ Send OTP to phone number for verification.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "phone_number": "+1234567890"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "message": "OTP sent successfully"
 }
-```
+\`\`\`
 
 #### `verifyOTP`
 
@@ -122,20 +122,20 @@ Verify OTP code sent to phone.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "phone_number": "+1234567890",
   "otp": "123456"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "message": "Phone verified successfully"
 }
-```
+\`\`\`
 
 #### `initiatePasswordReset`
 
@@ -145,19 +145,19 @@ Initiate password reset by sending OTP.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "phone_number": "+1234567890"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "message": "Password reset OTP sent"
 }
-```
+\`\`\`
 
 #### `resetPasswordWithOTP`
 
@@ -167,22 +167,22 @@ Reset password using OTP received.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "phone_number": "+1234567890",
   "otp": "123456",
   "new_password1": "newpassword123",
   "new_password2": "newpassword123"
 }
-```
+\`\`\`
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "message": "Password reset successful"
 }
-```
+\`\`\`
 
 ## User Management
 
@@ -198,7 +198,7 @@ Get authenticated user's profile information.
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "id": "user_uuid",
   "email": "user@example.com",
@@ -209,7 +209,7 @@ Get authenticated user's profile information.
   "is_verified": true,
   "created_at": "2024-01-01T00:00:00Z"
 }
-```
+\`\`\`
 
 #### `updateUserProfile`
 
@@ -219,13 +219,13 @@ Update user profile information.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "first_name": "John",
   "last_name": "Smith",
   "phone_number": "+1234567890"
 }
-```
+\`\`\`
 
 **Returns:** Updated user object (same structure as getUserDetails)
 
@@ -245,7 +245,7 @@ Get all addresses for authenticated user (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 5,
   "next": "http://api.example.org/accounts/?page=2",
@@ -265,7 +265,7 @@ Get all addresses for authenticated user (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getAddressById`
 
@@ -283,7 +283,7 @@ Create primary address for user.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "country": "US",
   "city": "New York",
@@ -291,7 +291,7 @@ Create primary address for user.
   "apartment_address": "Apt 4B",
   "postal_code": "10001"
 }
-```
+\`\`\`
 
 **Returns:** Created address object
 
@@ -303,7 +303,7 @@ Create secondary address for user.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "country": "US",
   "city": "Los Angeles",
@@ -311,7 +311,7 @@ Create secondary address for user.
   "apartment_address": "Unit 2",
   "postal_code": "90001"
 }
-```
+\`\`\`
 
 **Returns:** Created address object
 
@@ -331,7 +331,7 @@ Get all projects for authenticated user (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 10,
   "next": "http://api.example.org/accounts/?page=2",
@@ -351,7 +351,7 @@ Get all projects for authenticated user (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getProjectById`
 
@@ -369,7 +369,7 @@ Create new project.
 
 **Payload (Planting Project):**
 
-```json
+\`\`\`json
 {
   "name": "South Field Project",
   "created_date": "2024-01-15",
@@ -392,11 +392,11 @@ Create new project.
     "solar_radiation": 850.0
   }
 }
-```
+\`\`\`
 
 **Payload (Animal Keeping Project):**
 
-```json
+\`\`\`json
 {
   "name": "Cattle Ranch Project",
   "created_date": "2024-01-15",
@@ -406,7 +406,7 @@ Create new project.
   "type": "animal_keeping",
   "is_active": true
 }
-```
+\`\`\`
 
 **Returns:** Created project object
 
@@ -457,7 +457,7 @@ Get all farms for authenticated user (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 3,
   "next": null,
@@ -475,7 +475,7 @@ Get all farms for authenticated user (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getFarmById`
 
@@ -493,14 +493,14 @@ Create new farm.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Sunny Acres Farm",
   "size": 75.0,
   "unit": "hectare",
   "location": { "latitude": 40.7128, "longitude": -74.006 }
 }
-```
+\`\`\`
 
 **Returns:** Created farm object
 
@@ -538,7 +538,7 @@ Get all plots for a specific farm (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 5,
   "next": null,
@@ -556,7 +556,7 @@ Get all plots for a specific farm (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getPlotById`
 
@@ -574,14 +574,14 @@ Create new plot in farm.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "East Plot",
   "size": 3.2,
   "unit": "hectare",
   "soil_type": "sandy"
 }
-```
+\`\`\`
 
 **Returns:** Created plot object
 
@@ -619,7 +619,7 @@ Get all finance records (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 20,
   "next": "http://api.example.org/accounts/?page=2",
@@ -645,7 +645,7 @@ Get all finance records (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getFinanceById`
 
@@ -663,7 +663,7 @@ Create new finance record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "project": "project_uuid",
   "date": "2024-01-20",
@@ -677,7 +677,7 @@ Create new finance record.
     }
   ]
 }
-```
+\`\`\`
 
 **Returns:** Created finance object
 
@@ -725,7 +725,7 @@ Get all soil records (paginated).
 
 **Returns:**
 
-```json
+\`\`\`json
 {
   "count": 8,
   "next": null,
@@ -745,7 +745,7 @@ Get all soil records (paginated).
     }
   ]
 }
-```
+\`\`\`
 
 #### `getSoilById`
 
@@ -763,7 +763,7 @@ Create new soil record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "type": "sandy",
   "ph": 6.8,
@@ -773,7 +773,7 @@ Create new soil record.
   "organic_matter": 3.2,
   "moisture": 28.5
 }
-```
+\`\`\`
 
 **Returns:** Created soil object
 
@@ -817,7 +817,7 @@ Get all planting events for a project.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "planting_event_uuid",
@@ -837,7 +837,7 @@ Get all planting events for a project.
     "created_at": "2024-03-15T00:00:00Z"
   }
 ]
-```
+\`\`\`
 
 #### `getPlantingEventById`
 
@@ -855,7 +855,7 @@ Create new planting event.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "plot": "plot_uuid",
   "planting_date": "2024-04-01",
@@ -868,7 +868,7 @@ Create new planting event.
     }
   ]
 }
-```
+\`\`\`
 
 **Returns:** Created planting event object
 
@@ -902,7 +902,7 @@ Get all species for a planting event.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "species_uuid",
@@ -917,7 +917,7 @@ Get all species for a planting event.
     "notes": "Requires cold stratification"
   }
 ]
-```
+\`\`\`
 
 #### `getSpeciesById`
 
@@ -935,7 +935,7 @@ Create new species for planting event.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Barley",
   "variety": "Spring Barley",
@@ -944,7 +944,7 @@ Create new species for planting event.
   "yield_estimate": 3500.0,
   "notes": "Good for beer production"
 }
-```
+\`\`\`
 
 **Returns:** Created species object
 
@@ -978,7 +978,7 @@ Get all animal groups for a project.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "group_uuid",
@@ -996,7 +996,7 @@ Get all animal groups for a project.
     "group_created_date": "2024-01-01"
   }
 ]
-```
+\`\`\`
 
 #### `getAnimalGroupById`
 
@@ -1014,7 +1014,7 @@ Create new animal group.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "type": "poultry",
   "group_name": "Chicken Coop 1",
@@ -1027,7 +1027,7 @@ Create new animal group.
   },
   "group_created_date": "2024-02-01"
 }
-```
+\`\`\`
 
 **Returns:** Created animal group object
 
@@ -1061,7 +1061,7 @@ Get all feeding records for an animal.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "feed_uuid",
@@ -1078,7 +1078,7 @@ Get all feeding records for an animal.
     }
   }
 ]
-```
+\`\`\`
 
 #### `getAnimalFeedById`
 
@@ -1096,7 +1096,7 @@ Create new feeding record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "date": "2024-01-20",
   "name": "Grain Mix",
@@ -1109,7 +1109,7 @@ Create new feeding record.
     "fiber": 10.0
   }
 }
-```
+\`\`\`
 
 **Returns:** Created feed record object
 
@@ -1143,7 +1143,7 @@ Get all disease records for an animal.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "disease_uuid",
@@ -1160,7 +1160,7 @@ Get all disease records for an animal.
     "animal": "animal_uuid"
   }
 ]
-```
+\`\`\`
 
 #### `getAnimalDiseaseById`
 
@@ -1178,13 +1178,13 @@ Create new disease record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Respiratory Infection",
   "date": "2024-02-01",
   "treatments": []
 }
-```
+\`\`\`
 
 **Returns:** Created disease record object
 
@@ -1218,7 +1218,7 @@ Get all treatments for a specific disease.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "treatment_uuid",
@@ -1230,7 +1230,7 @@ Get all treatments for a specific disease.
     "created_at": "2024-01-10T00:00:00Z"
   }
 ]
-```
+\`\`\`
 
 #### `getDiseaseTreatmentById`
 
@@ -1248,14 +1248,14 @@ Create new treatment record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "treatment": "Vaccine booster",
   "date": "2024-02-05",
   "dosage": "2ml",
   "notes": "Annual vaccination"
 }
-```
+\`\`\`
 
 **Returns:** Created treatment record object
 
@@ -1289,7 +1289,7 @@ Get all harvest records for an animal.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "harvest_uuid",
@@ -1302,7 +1302,7 @@ Get all harvest records for an animal.
     "notes": "Morning collection"
   }
 ]
-```
+\`\`\`
 
 #### `getAnimalHarvestById`
 
@@ -1320,7 +1320,7 @@ Create new harvest record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "date": "2024-01-20",
   "product": "eggs",
@@ -1329,7 +1329,7 @@ Create new harvest record.
   "quality_grade": "AA",
   "notes": "From free-range hens"
 }
-```
+\`\`\`
 
 **Returns:** Created harvest record object
 
@@ -1363,7 +1363,7 @@ Get all processing records for an animal.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "process_uuid",
@@ -1382,7 +1382,7 @@ Get all processing records for an animal.
     "notes": "Prime quality cuts"
   }
 ]
-```
+\`\`\`
 
 #### `getAnimalProcessById`
 
@@ -1400,7 +1400,7 @@ Create new processing record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "type": "milking",
   "date": "2024-01-20",
@@ -1414,7 +1414,7 @@ Create new processing record.
   ],
   "notes": "Evening milking"
 }
-```
+\`\`\`
 
 **Returns:** Created processing record object
 
@@ -1448,7 +1448,7 @@ Get all disease records for a species.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "disease_uuid",
@@ -1466,7 +1466,7 @@ Get all disease records for a species.
     ]
   }
 ]
-```
+\`\`\`
 
 #### `getPlantDiseaseById`
 
@@ -1484,7 +1484,7 @@ Create new disease record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Leaf Rust",
   "date": "2024-05-01",
@@ -1492,7 +1492,7 @@ Create new disease record.
   "affected_area": 5.0,
   "notes": "Early detection"
 }
-```
+\`\`\`
 
 **Returns:** Created disease record object
 
@@ -1526,7 +1526,7 @@ Get all treatments for a plant disease.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "treatment_uuid",
@@ -1539,7 +1539,7 @@ Get all treatments for a plant disease.
     "notes": "Applied in early morning"
   }
 ]
-```
+\`\`\`
 
 #### `getPlantDiseaseTreatmentById`
 
@@ -1557,7 +1557,7 @@ Create new treatment record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "treatment": "Copper-based fungicide",
   "date": "2024-05-05",
@@ -1565,7 +1565,7 @@ Create new treatment record.
   "dosage": "200ml per 50sqm",
   "notes": "Second application scheduled for 7 days"
 }
-```
+\`\`\`
 
 **Returns:** Created treatment record object
 
@@ -1599,7 +1599,7 @@ Get all pest records for a species.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "pest_uuid",
@@ -1617,7 +1617,7 @@ Get all pest records for a species.
     ]
   }
 ]
-```
+\`\`\`
 
 #### `getPlantPestById`
 
@@ -1635,7 +1635,7 @@ Create new pest record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Caterpillars",
   "date": "2024-05-10",
@@ -1643,7 +1643,7 @@ Create new pest record.
   "affected_area": 20.0,
   "notes": "Heavy infestation on leaves"
 }
-```
+\`\`\`
 
 **Returns:** Created pest record object
 
@@ -1677,7 +1677,7 @@ Get all treatments for a plant pest.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "treatment_uuid",
@@ -1690,7 +1690,7 @@ Get all treatments for a plant pest.
     "notes": "Repeat weekly if needed"
   }
 ]
-```
+\`\`\`
 
 #### `getPlantPestTreatmentById`
 
@@ -1708,7 +1708,7 @@ Create new treatment record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "treatment": "Biological control - Ladybugs",
   "date": "2024-05-12",
@@ -1716,7 +1716,7 @@ Create new treatment record.
   "dosage": "500 ladybugs per acre",
   "notes": "Natural predator introduction"
 }
-```
+\`\`\`
 
 **Returns:** Created treatment record object
 
@@ -1750,7 +1750,7 @@ Get all harvest records for a species.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "harvest_uuid",
@@ -1763,7 +1763,7 @@ Get all harvest records for a species.
     "notes": "Excellent yield this season"
   }
 ]
-```
+\`\`\`
 
 #### `getPlantHarvestById`
 
@@ -1781,7 +1781,7 @@ Create new harvest record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "date": "2024-08-01",
   "quantity": 325.0,
@@ -1790,7 +1790,7 @@ Create new harvest record.
   "storage_location": "Cold Storage B",
   "notes": "Second harvest of the season"
 }
-```
+\`\`\`
 
 **Returns:** Created harvest record object
 
@@ -1824,7 +1824,7 @@ Get all fertility spread records for a planting event.
 
 **Returns:**
 
-```json
+\`\`\`json
 [
   {
     "id": "fertility_uuid",
@@ -1837,7 +1837,7 @@ Get all fertility spread records for a planting event.
     "notes": "Split application over 3 weeks"
   }
 ]
-```
+\`\`\`
 
 #### `getFertilitySpreadById`
 
@@ -1855,7 +1855,7 @@ Create new fertility spread record.
 
 **Payload:**
 
-```json
+\`\`\`json
 {
   "name": "Organic Compost",
   "type": "fertilizer",
@@ -1864,7 +1864,7 @@ Create new fertility spread record.
   "application_rate": "2 tons per hectare",
   "notes": "Applied before planting"
 }
-```
+\`\`\`
 
 **Returns:** Created fertility spread record object
 
@@ -1892,9 +1892,9 @@ Delete fertility spread record.
 
 All authenticated endpoints require the `Authorization` header with a Bearer token:
 
-```
+\`\`\`
 Authorization: Bearer {access_token}
-```
+\`\`\`
 
 ### Error Responses
 
@@ -1902,59 +1902,59 @@ All endpoints may return these common error responses:
 
 **400 Bad Request:**
 
-```json
+\`\`\`json
 {
   "error": "Validation error message",
   "details": {
     "field_name": ["Error message"]
   }
 }
-```
+\`\`\`
 
 **401 Unauthorized:**
 
-```json
+\`\`\`json
 {
   "detail": "Authentication credentials were not provided."
 }
-```
+\`\`\`
 
 **403 Forbidden:**
 
-```json
+\`\`\`json
 {
   "detail": "You do not have permission to perform this action."
 }
-```
+\`\`\`
 
 **404 Not Found:**
 
-```json
+\`\`\`json
 {
   "detail": "Not found."
 }
-```
+\`\`\`
 
 **500 Internal Server Error:**
 
-```json
+\`\`\`json
 {
   "error": "Internal server error"
 }
-```
+\`\`\`
 
 ### Pagination
 
 Paginated endpoints return responses in this format:
 
-```json
+\`\`\`json
 {
   "count": 100,
   "next": "http://api.example.org/endpoint/?page=3",
   "previous": "http://api.example.org/endpoint/?page=1",
   "results": [...]
 }
-```
+\`\`\`
 
 ### Enums
 

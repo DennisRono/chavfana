@@ -27,19 +27,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import {
-  Plus,
-  MapPin,
-  Navigation,
-  CheckCircle,
-  Droplets,
-  ChevronsUpDown,
-  Check,
-} from 'lucide-react'
+import { Plus, MapPin, Navigation, CheckCircle, Droplets, ChevronsUpDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { SpeciesRow } from './components/species-row'
 import { useUserLocation } from '@/hooks/use-user-location'
 import { useAppDispatch } from '@/store/hooks'
+import { AppDispatch } from '@/store/store'
 import { createProject } from '@/store/actions/project'
 import { cn } from '@/lib/utils'
 import africanCountries from '@/data/countries.json'
@@ -47,13 +40,16 @@ import {
   plantingProjectSchema,
   type PlantingProjectForm,
 } from '@/schemas/plant-farming'
+import { useRouter } from 'next/navigation'
 
 const PlantingEventForm = () => {
-  const { coordinates, error, permissionState, isLoading, requestLocation } =
+  const { coordinates, error, permissionState, isLoading: locationLoading, requestLocation } =
     useUserLocation()
   const [countryOpen, setCountryOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
-  const dispatch = useAppDispatch()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const dispatch = useAppDispatch<AppDispatch>()
+  const router = useRouter()
 
   const {
     register,
@@ -155,9 +151,19 @@ const PlantingEventForm = () => {
   }, [reset])
 
   const onSave = handleSubmit((data: any) => {
-    console.log('Form Data:', data)
+    setIsSubmitting(true)
     dispatch(createProject(data))
-    toast.success('Project created successfully!')
+      .unwrap()
+      .then((result) => {
+        toast.success('Success', { description: 'Plant project created successfully!' })
+        router.push(`/project/${result.id}`)
+      })
+      .catch((error: any) => {
+        toast.error('Error', { description: error?.message || 'Failed to create project. Please try again.' })
+      })
+      .finally(() => {
+        setIsSubmitting(false)
+      })
   })
 
   useEffect(() => {
@@ -442,11 +448,11 @@ const PlantingEventForm = () => {
                         <Button
                           type="button"
                           onClick={handleLocationRequest}
-                          disabled={isLoading}
+                          disabled={locationLoading}
                           className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                         >
                           <Navigation className="h-4 w-4 mr-2" />
-                          {isLoading
+                          {locationLoading
                             ? 'Requesting Location...'
                             : 'Use Current Location'}
                         </Button>
@@ -755,14 +761,16 @@ const PlantingEventForm = () => {
               variant="outline"
               onClick={onCancel}
               className="h-11 px-8 border-2 bg-transparent"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="h-11 px-8 bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-700 hover:to-emerald-700"
+              disabled={isSubmitting}
             >
-              Save Project
+              {isSubmitting ? 'Saving...' : 'Save Project'}
             </Button>
           </div>
         </form>

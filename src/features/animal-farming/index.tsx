@@ -20,6 +20,7 @@ import { GroupAnimalForm } from './components/group-animal-form'
 import { toast } from 'sonner'
 import { createProject } from '@/store/actions/project'
 import { useAppDispatch } from '@/store/hooks'
+import { AppDispatch } from '@/store/store'
 import { useCallback, useEffect, useState } from 'react'
 import africanCountries from '@/data/countries.json'
 import { useUserLocation } from '@/hooks/use-user-location'
@@ -27,12 +28,15 @@ import {
   AnimalProjectForm,
   animalProjectSchema,
 } from '@/schemas/animal-farming'
+import { useRouter } from 'next/navigation'
 
 export default function AnimalFarmingForm() {
   const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
-  const { coordinates, error, permissionState, isLoading, requestLocation } =
+  const [isLoading, setIsLoading] = useState(false)
+  const { coordinates, error, permissionState, isLoading: locationLoading, requestLocation } =
     useUserLocation()
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
+  const router = useRouter()
 
   const form = useForm<AnimalProjectForm>({
     resolver: zodResolver(animalProjectSchema),
@@ -97,8 +101,19 @@ export default function AnimalFarmingForm() {
   }, [requestLocation, coordinates, error])
 
   const onSubmit = (data: AnimalProjectForm) => {
+    setIsLoading(true)
     dispatch(createProject(data))
-    toast.success('Animal project created successfully!')
+      .unwrap()
+      .then((result) => {
+        toast.success('Success', { description: 'Animal project created successfully!' })
+        router.push(`/project/${result.id}`)
+      })
+      .catch((error: any) => {
+        toast.error('Error', { description: error?.message || 'Failed to create project. Please try again.' })
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
 
   useEffect(() => {
@@ -341,11 +356,11 @@ export default function AnimalFarmingForm() {
                         <Button
                           type="button"
                           onClick={handleLocationRequest}
-                          disabled={isLoading}
+                          disabled={locationLoading}
                           className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                         >
                           <Navigation className="h-4 w-4 mr-2" />
-                          {isLoading
+                          {locationLoading
                             ? 'Requesting Location...'
                             : 'Use Current Location'}
                         </Button>
@@ -480,14 +495,16 @@ export default function AnimalFarmingForm() {
               type="button"
               variant="outline"
               className="px-8 py-3 text-base border-gray-300 hover:bg-gray-50 bg-transparent"
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="px-8 py-3 text-base bg-gradient-to-r from-green-700 to-emerald-600 text-white shadow-lg"
+              disabled={isLoading}
             >
-              Save Project
+              {isLoading ? 'Saving...' : 'Save Project'}
             </Button>
           </div>
         </form>

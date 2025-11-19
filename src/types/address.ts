@@ -1,4 +1,3 @@
-
 export interface AddressData {}
 
 export interface AddressResponse {

@@ -10,7 +10,7 @@ import { getAnimalGroupById } from "@/store/actions/animal-group"
 import { getAnimalDiseases, deleteAnimalDisease } from "@/store/actions/animal-disease"
 import { getAnimalProcesses, deleteAnimalProcess } from "@/store/actions/animal-process"
 import { toast } from "sonner"
-import { Calendar, Weight, Tag, Heart, Package, Plus, Trash2 } from "lucide-react"
+import { Calendar, Weight, Tag, Heart, Package, Plus, Trash2 } from 'lucide-react'
 import type { AnimalType } from "@/types/project"
 import {
   AlertDialog,
@@ -176,7 +176,7 @@ export function AnimalDetailsDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="!min-w-6xl max-h-[90vh] overflow-y-auto no-scrollbar">
+        <DialogContent className="!min-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {animal.name || "Animal Details"}
@@ -442,7 +442,7 @@ export function AnimalDetailsDialog({
                 if (deleteDialog?.type === "disease") {
                   handleDeleteDisease(deleteDialog.id)
                 } else {
-                  handleDeleteProcess(deleteDialog.id)
+                  deleteDialog && handleDeleteProcess(deleteDialog.id)
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

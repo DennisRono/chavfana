@@ -17,6 +17,7 @@ import { useAppDispatch } from "@/store/hooks"
 import { createAnimalDisease } from "@/store/actions/animal-disease"
 import { toast } from "sonner"
 import { animalDiseaseSchema, type AnimalDiseaseForm } from "@/schemas/animal-health-records"
+import { AppDispatch } from "@/store/store"
 
 interface AddDiseaseDialogProps {
   open: boolean
@@ -26,7 +27,7 @@ interface AddDiseaseDialogProps {
 }
 
 export function AddDiseaseDialog({ open, onOpenChange, animalId, onSuccess }: AddDiseaseDialogProps) {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
 
   const {
     control,
@@ -43,36 +44,38 @@ export function AddDiseaseDialog({ open, onOpenChange, animalId, onSuccess }: Ad
   })
 
   const onSubmit = async (data: AnimalDiseaseForm) => {
-    try {
-      if (!animalId || typeof animalId !== "string") {
-        toast.error("Error", { description: "Invalid animal ID" })
-        return
-      }
-
-      if (!data || typeof data !== "object") {
-        toast.error("Error", { description: "Invalid disease data" })
-        return
-      }
-
-      if (!data.name || typeof data.name !== "string") {
-        toast.error("Error", { description: "Please enter disease name" })
-        return
-      }
-
-      if (!data.date || typeof data.date !== "string") {
-        toast.error("Error", { description: "Please select a date" })
-        return
-      }
-
-      await dispatch(createAnimalDisease({ animalId, diseaseData: data })).unwrap()
-      toast.success("Success", { description: "Disease record added successfully" })
-      reset()
-      onSuccess()
-      onOpenChange(false)
-    } catch (err: any) {
-      const errorMessage = err?.message || err?.detail || "Failed to add disease record"
-      toast.error("Error", { description: errorMessage })
+    if (!animalId || typeof animalId !== "string") {
+      toast.error("Error", { description: "Invalid animal ID" })
+      return
     }
+
+    if (!data || typeof data !== "object") {
+      toast.error("Error", { description: "Invalid disease data" })
+      return
+    }
+
+    if (!data.name || typeof data.name !== "string") {
+      toast.error("Error", { description: "Please enter disease name" })
+      return
+    }
+
+    if (!data.date || typeof data.date !== "string") {
+      toast.error("Error", { description: "Please select a date" })
+      return
+    }
+
+    dispatch(createAnimalDisease({ animalId, diseaseData: data }))
+      .unwrap()
+      .then(() => {
+        toast.success("Success", { description: "Disease record added successfully" })
+        reset()
+        onSuccess()
+        onOpenChange(false)
+      })
+      .catch((err: any) => {
+        const errorMessage = err?.message || err?.detail || "Failed to add disease record"
+        toast.error("Error", { description: errorMessage })
+      })
   }
 
   return (

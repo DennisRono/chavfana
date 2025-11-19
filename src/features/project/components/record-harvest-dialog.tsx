@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ProjectResponse } from "@/types/project"
 import { useAppDispatch } from "@/store/hooks"
+import { AppDispatch } from "@/store/store"
 import { toast } from "sonner"
 import { createPlantHarvest } from "@/store/actions/plant-harvest"
 import { recordHarvestSchema, type RecordHarvestForm } from "@/schemas/quick-actions"
@@ -29,7 +30,7 @@ interface RecordHarvestProps {
 }
 
 export default function RecordHarvest({ open, onOpenChange, project, onSuccess }: RecordHarvestProps) {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
 
   const {
     control,
@@ -85,60 +86,59 @@ export default function RecordHarvest({ open, onOpenChange, project, onSuccess }
   }, [selectedEvent?.species])
 
   const onSubmit = async (data: RecordHarvestForm) => {
-    try {
-      if (!project || typeof project !== "object") {
-        toast.error("Error", { description: "Invalid project data" })
-        return
-      }
-
-      if (!data || typeof data !== "object") {
-        toast.error("Error", { description: "Invalid harvest data" })
-        return
-      }
-
-      if (!speciesId || typeof speciesId !== "string") {
-        toast.error("Error", { description: "No species found for this planting event" })
-        return
-      }
-
-      if (typeof data.amount !== "number" || data.amount <= 0) {
-        toast.error("Error", { description: "Invalid harvest amount" })
-        return
-      }
-
-      if (!data.unit || typeof data.unit !== "string") {
-        toast.error("Error", { description: "Please select a unit" })
-        return
-      }
-
-      if (!data.quality || typeof data.quality !== "string") {
-        toast.error("Error", { description: "Please select quality" })
-        return
-      }
-
-      const cleanedHarvestData = {
-        date: data.harvest_date,
-        amount: data.amount.toString(),
-        unit: data.unit,
-        quality: data.quality,
-        species: speciesId,
-      }
-
-      await dispatch(
-        createPlantHarvest({
-          speciesId,
-          harvestData: cleanedHarvestData,
-        }),
-      ).unwrap()
-
-      toast.success("Success", { description: "Harvest record created successfully" })
-      reset()
-      onSuccess()
-      onOpenChange(false)
-    } catch (err: any) {
-      const errorMessage = err?.message || err?.detail || "Failed to record harvest"
-      toast.error("Error", { description: errorMessage })
+    if (!project || typeof project !== "object") {
+      toast.error("Error", { description: "Invalid project data" })
+      return
     }
+
+    if (!data || typeof data !== "object") {
+      toast.error("Error", { description: "Invalid harvest data" })
+      return
+    }
+
+    if (!speciesId || typeof speciesId !== "string") {
+      toast.error("Error", { description: "No species found for this planting event" })
+      return
+    }
+
+    if (typeof data.amount !== "number" || data.amount <= 0) {
+      toast.error("Error", { description: "Invalid harvest amount" })
+      return
+    }
+
+    if (!data.unit || typeof data.unit !== "string") {
+      toast.error("Error", { description: "Please select a unit" })
+      return
+    }
+
+    if (!data.quality || typeof data.quality !== "string") {
+      toast.error("Error", { description: "Please select quality" })
+      return
+    }
+
+    const cleanedHarvestData = {
+      date: data.harvest_date,
+      amount: data.amount.toString(),
+      unit: data.unit,
+      quality: data.quality,
+      species: speciesId,
+    }
+
+    dispatch(createPlantHarvest({
+      speciesId,
+      harvestData: cleanedHarvestData,
+    }))
+      .unwrap()
+      .then(() => {
+        toast.success("Success", { description: "Harvest record created successfully" })
+        reset()
+        onSuccess()
+        onOpenChange(false)
+      })
+      .catch((err: any) => {
+        const errorMessage = err?.message || err?.detail || "Failed to record harvest"
+        toast.error("Error", { description: errorMessage })
+      })
   }
 
   return (

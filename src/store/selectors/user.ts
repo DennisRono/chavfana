@@ -25,4 +25,3 @@ export const selectSecondaryAddresses = createSelector(
   [selectUserAddresses],
   (addresses) => addresses.filter((a) => a.address_type === 'S')
 )
-

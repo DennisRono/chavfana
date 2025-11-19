@@ -18,6 +18,7 @@ import { useAppDispatch } from "@/store/hooks"
 import { createAnimalProcess } from "@/store/actions/animal-process"
 import { toast } from "sonner"
 import { animalProcessSchema, type AnimalProcessForm } from "@/schemas/animal-health-records"
+import { AppDispatch } from "@/store/store"
 
 interface AddProcessDialogProps {
   open: boolean
@@ -27,7 +28,7 @@ interface AddProcessDialogProps {
 }
 
 export function AddProcessDialog({ open, onOpenChange, animalId, onSuccess }: AddProcessDialogProps) {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
 
   const {
     control,
@@ -45,15 +46,17 @@ export function AddProcessDialog({ open, onOpenChange, animalId, onSuccess }: Ad
   })
 
   const onSubmit = async (data: AnimalProcessForm) => {
-    try {
-      await dispatch(createAnimalProcess({ animalId, processData: data })).unwrap()
-      toast.success("Process record added")
-      reset()
-      onSuccess()
-      onOpenChange(false)
-    } catch (err: any) {
-      toast.error(err.message || "Failed to add process record")
-    }
+    dispatch(createAnimalProcess({ animalId, processData: data }))
+      .unwrap()
+      .then(() => {
+        toast.success("Process record added")
+        reset()
+        onSuccess()
+        onOpenChange(false)
+      })
+      .catch((err: any) => {
+        toast.error(err.message || "Failed to add process record")
+      })
   }
 
   return (

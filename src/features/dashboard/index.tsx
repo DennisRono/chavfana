@@ -1,24 +1,18 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
-import {
-  Wheat,
-  Beef,
-  Droplets,
-  DollarSign,
-  TrendingUp,
-  AlertTriangle,
-  Plus,
-} from 'lucide-react'
+import { Wheat, Beef, Droplets, DollarSign, TrendingUp, AlertTriangle, Plus } from 'lucide-react'
 import MetricCard from '@/components/shared/metric-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ProjectsList from '@/components/shared/project-list'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { AppDispatch } from '@/store/store'
 import { selectProjects } from '@/store/selectors/project'
 import { useSelector } from 'react-redux'
 import { selectSearch } from '@/store/selectors/search'
 import { getAllProjects } from '@/store/actions/project'
+import { toast } from 'sonner'
 
 const DashboardView = () => {
   const { search_term } = useSelector(selectSearch)
@@ -33,11 +27,19 @@ const DashboardView = () => {
   })
   const router = useRouter()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
 
-  useEffect(()=>{
-    dispatch(getAllProjects()) 
-  }, [])
+  useEffect(() => {
+    dispatch(getAllProjects())
+      .unwrap()
+      .then((result) => {
+        console.log('Projects fetched successfully:', result)
+      })
+      .catch((error: any) => {
+        console.error('Failed to fetch projects:', error)
+        toast.error('Error', { description: error?.message || 'Failed to fetch projects' })
+      })
+  }, [dispatch])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -71,8 +73,7 @@ const DashboardView = () => {
             projects.current_month_created_project >
             projects.last_month_created_project
               ? 'positive'
-              : projects.current_month_created_project <
-                projects.last_month_created_project
+              : projects.current_month_created_project < projects.last_month_created_project
               ? 'negative'
               : 'neutral'
           }
@@ -91,8 +92,7 @@ const DashboardView = () => {
             projects.current_month_total_animal >
             projects.last_month_total_animal
               ? 'positive'
-              : projects.current_month_total_animal <
-                projects.last_month_total_animal
+              : projects.current_month_total_animal < projects.last_month_total_animal
               ? 'negative'
               : 'neutral'
           }

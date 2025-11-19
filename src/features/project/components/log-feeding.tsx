@@ -26,6 +26,7 @@ import { createAnimalFeed } from '@/store/actions/animal-feeds'
 import { toast } from 'sonner'
 import { logFeedingSchema, type LogFeedingForm } from '@/schemas/quick-actions'
 import { useMemo, useState } from 'react'
+import { AppDispatch } from '@/store/store'
 
 interface LogFeedingProps {
   open: boolean
@@ -40,7 +41,7 @@ export default function LogFeeding({
   project,
   onSuccess,
 }: LogFeedingProps) {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -83,41 +84,38 @@ export default function LogFeeding({
 
   const onSubmit = async (data: LogFeedingForm) => {
     setIsLoading(true)
-    try {
-      const result = await dispatch(
-        createAnimalFeed({
-          animalId: data.animal_id,
-          feedData: {
-            animal: data.animal_id,
-            date: data.date,
-            name: data.name,
-            amount: data.amount,
-            unit: data.unit,
-            nutrients: {
-              protein: data.nutrients.protein,
-              carbohydrates: data.nutrients.carbohydrates,
-              minerals: data.nutrients.minerals,
-              unit: data.nutrients.unit,
-            },
-          },
-        })
-      )
-
-      // Check if the dispatch was successful
-      if (result.payload) {
+    dispatch(createAnimalFeed({
+      animalId: data.animal_id,
+      feedData: {
+        animal: data.animal_id,
+        date: data.date,
+        name: data.name,
+        amount: data.amount,
+        unit: data.unit,
+        nutrients: {
+          protein: data.nutrients.protein,
+          carbohydrates: data.nutrients.carbohydrates,
+          minerals: data.nutrients.minerals,
+          unit: data.nutrients.unit,
+        },
+      },
+    }))
+      .unwrap()
+      .then(() => {
         toast.success('Feeding record logged successfully')
         reset()
         onSuccess()
         onOpenChange(false)
-      }
-    } catch (err: any) {
-      console.error('[v0] Submit error:', err)
-      toast.error('Error', {
-        description: err?.message || 'Failed to log feeding record',
       })
-    } finally {
-      setIsLoading(false)
-    }
+      .catch((err: any) => {
+        console.error('Submit error:', err)
+        toast.error('Error', {
+          description: err?.message || 'Failed to log feeding record',
+        })
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }
 
   return (

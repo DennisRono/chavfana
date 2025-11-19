@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { useAppDispatch } from "@/store/hooks"
+import { AppDispatch } from "@/store/store"
 import type { ProjectResponse } from "@/types/project"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +30,7 @@ import { ProjectDetailsCard } from "./components/project-details-card"
 import { AnimalGroupList } from "./components/animal-group-list"
 import { PlantingEventList } from "./components/planting-event-list"
 import { QuickActionsCard } from "./components/quick-actions-card"
+import { FinanceList } from "./components/finance-list"
 import AddHealthRecord from "./components/add-health-record"
 import LogFeeding from "./components/log-feeding"
 import RecordHarvest from "./components/record-harvest-dialog"
@@ -38,7 +41,7 @@ interface ProjectViewProps {
 }
 
 export default function ProjectView({ projectId }: ProjectViewProps) {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch<AppDispatch>()
   const [project, setProject] = useState<ProjectResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleteGroupDialog, setDeleteGroupDialog] = useState<string | null>(null)
@@ -57,15 +60,18 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
   const [updateSoilDataDialog, setUpdateSoilDataDialog] = useState(false)
 
   const fetchProject = useCallback(async () => {
-    try {
-      setLoading(true)
-      const result = await dispatch(getProjectById(projectId)).unwrap()
-      setProject(result)
-    } catch (err: any) {
-      toast.error("Error", { description: "Failed to load project" })
-    } finally {
-      setLoading(false)
-    }
+    setLoading(true)
+    dispatch(getProjectById(projectId))
+      .unwrap()
+      .then((result) => {
+        setProject(result)
+      })
+      .catch((err: any) => {
+        toast.error("Error", { description: err?.message || "Failed to load project" })
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [dispatch, projectId])
 
   useEffect(() => {
@@ -74,26 +80,30 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
 
   const handleDeleteAnimalGroup = useCallback(
     async (groupId: string) => {
-      try {
-        await dispatch(deleteAnimalGroup({ projectId, groupId })).unwrap()
-        toast.success("Animal group deleted successfully")
-        await fetchProject()
-      } catch (err: any) {
-        toast.error(err.message || "Failed to delete animal group")
-      }
+      dispatch(deleteAnimalGroup({ projectId, groupId }))
+        .unwrap()
+        .then(() => {
+          toast.success("Success", { description: "Animal group deleted successfully" })
+          return fetchProject()
+        })
+        .catch((err: any) => {
+          toast.error("Error", { description: err?.message || "Failed to delete animal group" })
+        })
     },
     [dispatch, projectId, fetchProject],
   )
 
   const handleDeletePlantingEvent = useCallback(
     async (eventId: string) => {
-      try {
-        await dispatch(deletePlantingEvent({ projectId, eventId })).unwrap()
-        toast.success("Planting event deleted successfully")
-        await fetchProject()
-      } catch (err: any) {
-        toast.error(err.message || "Failed to delete planting event")
-      }
+      dispatch(deletePlantingEvent({ projectId, eventId }))
+        .unwrap()
+        .then(() => {
+          toast.success("Success", { description: "Planting event deleted successfully" })
+          return fetchProject()
+        })
+        .catch((err: any) => {
+          toast.error("Error", { description: err?.message || "Failed to delete planting event" })
+        })
     },
     [dispatch, projectId, fetchProject],
   )
@@ -133,38 +143,51 @@ export default function ProjectView({ projectId }: ProjectViewProps) {
       <ProjectHeader project={project} onEditClick={() => setEditProjectDialog(true)} />
 
       <div className="mx-auto container px-6 py-4">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <ProjectDetailsCard project={project} />
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="finance">Finance</TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-6 lg:col-span-2">
-            {isAnimalProject && (
-              <AnimalGroupList
-                project={project}
-                onAddGroup={() => setAnimalGroupDialog({ open: true })}
-                onViewDetails={(groupId, animalId) => setAnimalDetailsDialog({ open: true, groupId, animalId })}
-                onEditGroup={(groupId) => setAnimalGroupDialog({ open: true, groupId })}
-                onDeleteGroup={(groupId) => setDeleteGroupDialog(groupId)}
-              />
-            )}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <ProjectDetailsCard project={project} />
 
-            {!isAnimalProject && (
-              <PlantingEventList
-                project={project}
-                onAddEvent={() => setPlantingEventDialog({ open: true })}
-                onEditEvent={(eventId) => setPlantingEventDialog({ open: true, eventId })}
-                onDeleteEvent={(eventId) => setDeleteEventDialog(eventId)}
-              />
-            )}
+              <div className="space-y-6 lg:col-span-2">
+                {isAnimalProject && (
+                  <AnimalGroupList
+                    project={project}
+                    onAddGroup={() => setAnimalGroupDialog({ open: true })}
+                    onViewDetails={(groupId, animalId) => setAnimalDetailsDialog({ open: true, groupId, animalId })}
+                    onEditGroup={(groupId) => setAnimalGroupDialog({ open: true, groupId })}
+                    onDeleteGroup={(groupId) => setDeleteGroupDialog(groupId)}
+                  />
+                )}
 
-            <QuickActionsCard
-              project={project}
-              onRecordHarvest={() => setRecordHarvestDialog(true)}
-              onUpdateSoilData={() => setUpdateSoilDataDialog(true)}
-              onAddHealthRecord={() => setAddHealthRecordDialog(true)}
-              onLogFeeding={() => setLogFeedingDialog(true)}
-            />
-          </div>
-        </div>
+                {!isAnimalProject && (
+                  <PlantingEventList
+                    project={project}
+                    onAddEvent={() => setPlantingEventDialog({ open: true })}
+                    onEditEvent={(eventId) => setPlantingEventDialog({ open: true, eventId })}
+                    onDeleteEvent={(eventId) => setDeleteEventDialog(eventId)}
+                  />
+                )}
+
+                <QuickActionsCard
+                  project={project}
+                  onRecordHarvest={() => setRecordHarvestDialog(true)}
+                  onUpdateSoilData={() => setUpdateSoilDataDialog(true)}
+                  onAddHealthRecord={() => setAddHealthRecordDialog(true)}
+                  onLogFeeding={() => setLogFeedingDialog(true)}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="finance">
+            <FinanceList projectId={projectId} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <EditProjectDialog
