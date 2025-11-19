@@ -17,15 +17,6 @@ export interface TransactionData {
   transaction_type: TransactionType
   inventory_item?: string | null
   quantity?: number | null
-  amount: string | number
-  date: string
-}
-
-export interface TransactionResponse {
-  id: string
-  transaction_type: TransactionType
-  inventory_item: string | null
-  quantity: number | null
   amount: string
   date: string
 }
@@ -36,6 +27,9 @@ export interface FinanceData {
   kind: FinanceKind
   inventory_item?: string | null
   transactions: TransactionData[]
+  expense_type: string
+  related_model: any
+  related_object_id: string
 }
 
 export interface FinanceResponse {
@@ -50,9 +44,11 @@ export interface FinanceResponse {
   updated_at: string
 }
 
-export interface FinanceState {
-  finances: FinanceResponse[]
-  currentFinance: FinanceResponse | null
-  isLoading: boolean
-  error: string | null
+export interface TransactionResponse {
+  id: string
+  transaction_type: TransactionType
+  inventory_item: string | null
+  quantity: number | null
+  amount: string
+  date: string
 }

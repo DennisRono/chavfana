@@ -140,6 +140,12 @@
     scrollbar-width: none;
   }
 
+  input[type='date']::-webkit-calendar-picker-indicator {
+    color: black !important;
+    fill: black;
+    cursor: pointer;
+  }
+
   table {
     margin: 1rem 0;
   }

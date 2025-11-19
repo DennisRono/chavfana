@@ -31,21 +31,46 @@ import {
   updateFinance,
 } from '@/store/actions/finance'
 import { toast } from 'sonner'
+import { FinanceKind, TransactionType } from '@/types/finance'
+
+// Missing Inventory Endpoints
+// Listing inventory items
+// Creating inventory items
+// Updating inventory items
+// Managing inventory categories or types
+// Inventory tracking or stock levels
 
 const financeSchema = z.object({
   project: z.string().min(1, 'Project is required'),
-  transaction_type: z
-    .enum(['INCOME', 'EXPENSE'])
-    .refine((val) => !!val, { message: 'Transaction type is required' }),
-  category: z.string().min(1, 'Category is required'),
-  amount: z.number().min(0.01, 'Amount must be greater than 0'),
   date: z.string().min(1, 'Date is required'),
-  description: z.string().optional(),
-  payment_method: z.string().optional(),
-  reference_number: z.string().optional(),
+  kind: z.enum(['Expense', 'Earning']),
+  inventory_item: z.string().optional().nullable(),
+  transactions: z
+    .array(
+      z.object({
+        transaction_type: z.enum([
+          'PURCHASE',
+          'SALE',
+          'EXPENSE',
+          'INCOME',
+          'TRANSFER_IN',
+          'TRANSFER_OUT',
+          'ADJUSTMENT_IN',
+          'ADJUSTMENT_OUT',
+          'DAMAGE',
+          'RETURN',
+          'WRITE_OFF',
+        ]),
+        inventory_item: z.string().optional().nullable(),
+        quantity: z.number().min(0).optional().nullable(),
+        amount: z.string().min(1, 'Amount is required'),
+        date: z.string().min(1, 'Date is required'),
+      })
+    )
+    .min(1, 'At least one transaction is required'),
 })
 
-type FinanceForm = z.infer<typeof financeSchema>
+export type FinanceForm = z.infer<typeof financeSchema>
 
 interface FinanceDialogProps {
   open: boolean
@@ -69,20 +94,28 @@ export function FinanceDialog({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FinanceForm>({
     resolver: zodResolver(financeSchema),
     defaultValues: {
       project: projectId,
-      transaction_type: 'EXPENSE',
-      category: '',
-      amount: 0,
       date: new Date().toISOString().split('T')[0],
-      description: '',
-      payment_method: '',
-      reference_number: '',
+      kind: 'Expense',
+      inventory_item: null,
+      transactions: [
+        {
+          transaction_type: 'EXPENSE',
+          inventory_item: null,
+          quantity: null,
+          amount: '',
+          date: new Date().toISOString().split('T')[0],
+        },
+      ],
     },
   })
+
+  const currentKind = watch('kind')
 
   useEffect(() => {
     if (financeId && open) {
@@ -91,13 +124,16 @@ export function FinanceDialog({
         .then((data) => {
           reset({
             project: data.project,
-            transaction_type: data.transaction_type,
-            category: data.category,
-            amount: data.amount,
             date: data.date,
-            description: data.description || '',
-            payment_method: data.payment_method || '',
-            reference_number: data.reference_number || '',
+            kind: data.kind,
+            inventory_item: data.inventory_item,
+            transactions: data.transactions.map((transaction) => ({
+              transaction_type: transaction.transaction_type,
+              inventory_item: transaction.inventory_item,
+              quantity: transaction.quantity,
+              amount: transaction.amount,
+              date: transaction.date,
+            })),
           })
         })
         .catch((error: any) => {
@@ -105,13 +141,42 @@ export function FinanceDialog({
             description: error.message || 'Failed to load finance record',
           })
         })
+    } else if (!financeId && open) {
+      reset({
+        project: projectId,
+        date: new Date().toISOString().split('T')[0],
+        kind: 'Expense',
+        inventory_item: null,
+        transactions: [
+          {
+            transaction_type: 'EXPENSE',
+            inventory_item: null,
+            quantity: null,
+            amount: '',
+            date: new Date().toISOString().split('T')[0],
+          },
+        ],
+      })
     }
-  }, [financeId, open, dispatch, reset])
+  }, [financeId, open, dispatch, reset, projectId])
 
   const onSubmit = async (data: FinanceForm) => {
+    const formattedData = {
+      ...data,
+      expense_type: "",
+      related_model: "",
+      related_object_id: "",
+      transactions: data.transactions.map((transaction) => ({
+        ...transaction,
+        amount: transaction.amount.toString(),
+        quantity: transaction.quantity || null,
+        inventory_item: transaction.inventory_item || null,
+      })),
+    }
+
     const action = isEdit
-      ? updateFinance({ id: financeId!, data })
-      : createFinance(data)
+      ? updateFinance({ id: financeId!, data: formattedData })
+      : createFinance(formattedData)
 
     dispatch(action)
       .unwrap()
@@ -119,7 +184,6 @@ export function FinanceDialog({
         toast.success('Success', {
           description: `Finance ${isEdit ? 'updated' : 'created'} successfully`,
         })
-        reset()
         onSuccess()
         onOpenChange(false)
       })
@@ -130,6 +194,22 @@ export function FinanceDialog({
             `Failed to ${isEdit ? 'update' : 'create'} finance`,
         })
       })
+  }
+
+  const getTransactionTypeOptions = (kind: FinanceKind) => {
+    if (kind === 'Expense') {
+      return [
+        'PURCHASE',
+        'EXPENSE',
+        'TRANSFER_OUT',
+        'ADJUSTMENT_OUT',
+        'DAMAGE',
+        'RETURN',
+        'WRITE_OFF',
+      ]
+    } else {
+      return ['SALE', 'INCOME', 'TRANSFER_IN', 'ADJUSTMENT_IN']
+    }
   }
 
   return (
@@ -145,9 +225,9 @@ export function FinanceDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="transaction_type">Transaction Type</Label>
+              <Label htmlFor="kind">Type</Label>
               <Controller
-                name="transaction_type"
+                name="kind"
                 control={control}
                 render={({ field }) => (
                   <>
@@ -160,64 +240,13 @@ export function FinanceDialog({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="INCOME">Income</SelectItem>
-                        <SelectItem value="EXPENSE">Expense</SelectItem>
+                        <SelectItem value="Expense">Expense</SelectItem>
+                        <SelectItem value="Earning">Income</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.transaction_type && (
+                    {errors.kind && (
                       <p className="text-sm text-destructive">
-                        {errors.transaction_type.message}
-                      </p>
-                    )}
-                  </>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Controller
-                name="category"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Input
-                      id="category"
-                      placeholder="e.g., Feed, Labor, Sales"
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                    {errors.category && (
-                      <p className="text-sm text-destructive">
-                        {errors.category.message}
-                      </p>
-                    )}
-                  </>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Controller
-                name="amount"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...field}
-                      disabled={isSubmitting}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value) || 0)
-                      }
-                    />
-                    {errors.amount && (
-                      <p className="text-sm text-destructive">
-                        {errors.amount.message}
+                        {errors.kind.message}
                       </p>
                     )}
                   </>
@@ -247,76 +276,138 @@ export function FinanceDialog({
                 )}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="payment_method">Payment Method</Label>
-              <Controller
-                name="payment_method"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Input
-                      id="payment_method"
-                      placeholder="e.g., Cash, Bank Transfer"
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                    {errors.payment_method && (
-                      <p className="text-sm text-destructive">
-                        {errors.payment_method.message}
-                      </p>
-                    )}
-                  </>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="reference_number">Reference Number</Label>
-              <Controller
-                name="reference_number"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <Input
-                      id="reference_number"
-                      placeholder="Optional reference"
-                      {...field}
-                      disabled={isSubmitting}
-                    />
-                    {errors.reference_number && (
-                      <p className="text-sm text-destructive">
-                        {errors.reference_number.message}
-                      </p>
-                    )}
-                  </>
-                )}
-              />
-            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <>
+          {/* Transaction Details */}
+          <div className="space-y-4 border-t pt-4">
+            <h4 className="font-medium">Transaction Details</h4>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="transaction_type">Transaction Type</Label>
+                <Controller
+                  name="transactions.0.transaction_type"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getTransactionTypeOptions(currentKind).map(
+                            (type) => (
+                              <SelectItem key={type} value={type}>
+                                {type
+                                  .replace(/_/g, ' ')
+                                  .toLowerCase()
+                                  .replace(/\b\w/g, (l) => l.toUpperCase())}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {errors.transactions?.[0]?.transaction_type && (
+                        <p className="text-sm text-destructive">
+                          {errors.transactions[0].transaction_type.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount</Label>
+                <Controller
+                  name="transactions.0.amount"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input
+                        id="amount"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        disabled={isSubmitting}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                      {errors.transactions?.[0]?.amount && (
+                        <p className="text-sm text-destructive">
+                          {errors.transactions[0].amount.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="inventory_item">
+                  Inventory Item (Optional)
+                </Label>
+                <Controller
+                  name="transactions.0.inventory_item"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="inventory_item"
+                      placeholder="Inventory item ID"
+                      {...field}
+                      value={field.value || ''}
+                      disabled={isSubmitting}
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity (Optional)</Label>
+                <Controller
+                  name="transactions.0.quantity"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="quantity"
+                      type="number"
+                      step="1"
+                      placeholder="0"
+                      {...field}
+                      disabled={isSubmitting}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value ? parseInt(e.target.value) : null
+                        )
+                      }
+                      value={field.value || ''}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Notes (Optional)</Label>
+              <Controller
+                name="inventory_item"
+                control={control}
+                render={({ field }) => (
                   <Textarea
                     id="description"
                     placeholder="Add notes about this transaction..."
                     rows={3}
                     {...field}
+                    value={field.value || ''}
                     disabled={isSubmitting}
                   />
-                  {errors.description && (
-                    <p className="text-sm text-destructive">
-                      {errors.description.message}
-                    </p>
-                  )}
-                </>
-              )}
-            />
+                )}
+              />
+            </div>
           </div>
 
           <DialogFooter>

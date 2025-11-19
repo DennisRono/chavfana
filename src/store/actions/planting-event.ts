@@ -32,30 +32,18 @@ export const getPlantingEvents = createAsyncThunk<PlantingEventResponse[], strin
 
 export const createPlantingEvent = createAsyncThunk<
   PlantingEventResponse,
-  { projectId: string; data: PlantingEventDialogForm },
+  { projectId: string; data: any },
   { rejectValue: ErrorResponse }
 >("plantingEvent/create", async ({ projectId, data }, { getState, rejectWithValue }) => {
   try {
     const state = getState() as RootState
-    const payload = {
-      name: data.name,
-      planting_date: data.planting_date,
-      end_date: data.end_date || null,
-      area_size: data.area_size,
-      area_size_unit: data.area_size_unit,
-      stage: data.stage,
-      type: data.type,
-      notes: data.notes || null,
-      species: [],
-    }
-
     const response = await fetch(`${BASE_URL}/api/projects/${projectId}/planting-events/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${state?.auth?.access_token}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     })
 
     if (!response.ok) {
@@ -100,7 +88,7 @@ export const getPlantingEventById = createAsyncThunk<
 
 export const updatePlantingEvent = createAsyncThunk<
   PlantingEventResponse,
-  { projectId: string; eventId: string; data: PlantingEventDialogForm },
+  { projectId: string; eventId: string; data: any },
   { rejectValue: ErrorResponse }
 >("plantingEvent/update", async ({ projectId, eventId, data }, { getState, rejectWithValue }) => {
   try {

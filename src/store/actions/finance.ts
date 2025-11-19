@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import type { ErrorResponse } from '@/types/responses'
 import type { RootState } from '@/store/store'
+import { FinanceData } from '@/types/finance'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -28,7 +29,7 @@ export const getAllFinances = createAsyncThunk<any, { page?: number }, { rejectV
   }
 )
 
-export const createFinance = createAsyncThunk<any, any, { rejectValue: ErrorResponse }>(
+export const createFinance = createAsyncThunk<any, FinanceData, { rejectValue: ErrorResponse }>(
   'finance/create',
   async (financeData, { getState, rejectWithValue }) => {
     try {
