@@ -29,13 +29,7 @@ import {
   animalProjectSchema,
 } from '@/schemas/animal-farming'
 import { useRouter } from 'next/navigation'
-import {
-  AnimalGroup,
-  AnimalKeepingProject,
-  GroupAnimal,
-  IndividualAnimal,
-  ProjectData,
-} from '@/types/project'
+import { ProjectData } from '@/types/project'
 
 export default function AnimalFarmingForm() {
   const [formType, setFormType] = useState<'Individual' | 'Group'>('Individual')
@@ -67,19 +61,23 @@ export default function AnimalFarmingForm() {
         group_name: '',
         housing: 'BARN',
         group_created_date: new Date().toISOString().split('T')[0],
-        animals: {
-          tag: '',
-          breed: '',
-          name: '',
-          arrival_date: new Date().toISOString().split('T')[0],
-          birthday: '',
-          type: '',
-          gender: 'MALE' as const,
-          weight: 0,
-          age: 0,
-          notes: '',
-        },
+        animals: [
+          {
+            tag: '',
+            breed: '',
+            name: '',
+            arrival_date: new Date().toISOString().split('T')[0],
+            birthday: '',
+            type: '',
+            gender: 'MALE',
+            weight: 0,
+            age: 0,
+            notes: '',
+          },
+        ],
       },
+      farm_id: undefined,
+      plot_id: undefined,
     },
   })
 
@@ -117,8 +115,6 @@ export default function AnimalFarmingForm() {
         type: 'AnimalKeepingProject',
         created_date:
           data.created_date || new Date().toISOString().split('T')[0],
-
-        animal_group: data.animal_group,
       }
 
       const result = await dispatch(
@@ -139,36 +135,50 @@ export default function AnimalFarmingForm() {
   }
 
   useEffect(() => {
+    const currentAnimalGroup = form.getValues('animal_group')
     if (formType === 'Individual') {
-      form.setValue('animal_group.type', 'Individual')
-
-      form.setValue('animal_group.animals', {
-        tag: '',
-        breed: '',
-        name: '',
-        arrival_date: new Date().toISOString().split('T')[0],
-        birthday: '',
-        type: '',
-        gender: 'MALE',
-        weight: 0,
-        age: 0,
-        notes: '',
-        non_field_errors: [],
+      form.setValue('animal_group', {
+        type: 'Individual',
+        group_name: currentAnimalGroup?.group_name || '',
+        housing: currentAnimalGroup?.housing || 'BARN',
+        group_created_date:
+          currentAnimalGroup?.group_created_date ||
+          new Date().toISOString().split('T')[0],
+        animals: [
+          {
+            tag: '',
+            breed: '',
+            name: '',
+            arrival_date: new Date().toISOString().split('T')[0],
+            birthday: '',
+            type: '',
+            gender: 'MALE',
+            weight: 0,
+            age: 0,
+            notes: '',
+          },
+        ],
       })
     } else {
-      form.setValue('animal_group.type', 'Group')
-      form.setValue('animal_group.animals', {
-        breed: '',
-        name: '',
-        arrival_date: new Date().toISOString().split('T')[0],
-        birthday: '',
-        type: '',
-        gender: 'MALE',
-        average_weight: 0,
-        average_age: 0,
-        starting_number: 0,
-        notes: '',
-        non_field_errors: [],
+      form.setValue('animal_group', {
+        type: 'Group',
+        group_name: currentAnimalGroup?.group_name || '',
+        housing: currentAnimalGroup?.housing || 'BARN',
+        group_created_date:
+          currentAnimalGroup?.group_created_date ||
+          new Date().toISOString().split('T')[0],
+        pack: {
+          breed: '',
+          name: '',
+          type: '',
+          gender: 'MALE',
+          starting_number: 1,
+          average_weight: 0,
+          average_age: 0,
+          arrival_date: new Date().toISOString().split('T')[0],
+          birthday: '',
+          notes: '',
+        },
       })
     }
   }, [formType, form])
@@ -186,7 +196,7 @@ export default function AnimalFarmingForm() {
         </div>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Project Information Card - remains the same */}
+          {/* Project Information Card */}
           <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm !pt-0">
             <CardHeader className="bg-gradient-to-r from-green-700 to-emerald-600 text-white rounded-t-lg py-2">
               <CardTitle className="text-xl">Project Information</CardTitle>
@@ -457,10 +467,15 @@ export default function AnimalFarmingForm() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="BARN">Barn</SelectItem>
+                            <SelectItem value="PASTURE">Pasture</SelectItem>
                             <SelectItem value="CAGE">Cage</SelectItem>
+                            <SelectItem value="PEN">Pen</SelectItem>
+                            <SelectItem value="COOP">Coop</SelectItem>
+                            <SelectItem value="STABLE">Stable</SelectItem>
                             <SelectItem value="FREE_RANGE">
                               Free Range
                             </SelectItem>
+                            <SelectItem value="MIXED">Mixed</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

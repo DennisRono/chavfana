@@ -9,86 +9,114 @@ const dateString = z
     message: 'Date has wrong format. Use YYYY-MM-DD.',
   })
 
+const uuidSchema = z.string().uuid('Invalid UUID format').optional()
+
 const individualAnimalSchema = z.object({
   tag: z.string().min(1, 'Tag ID is required'),
   breed: z.string().min(1, 'Breed is required'),
-  name: z.string().min(1, 'animal name is required'),
+  name: z.string().min(1, 'Animal name is required'),
   arrival_date: dateString,
   birthday: dateString,
   type: z.string().min(1, 'Animal type is required'),
   gender: z.enum(['MALE', 'FEMALE'], {
-    error: () => ({ message: 'Invalid gender' }),
+    error: 'Invalid gender',
   }),
   weight: z.number().min(0, 'Weight cannot be negative'),
-  age: z.number().min(1, 'Age is required'),
+  age: z.number().min(0, 'Age cannot be negative'),
   notes: z.string().optional(),
-  non_field_errors: z.array(z.string())
 })
 
 const groupAnimalSchema = z.object({
   breed: z.string().min(1, 'Breed is required'),
-  name: z.string().min(1, 'animal name is required'),
-  arrival_date: dateString,
-  birthday: dateString.optional(),
+  name: z.string().min(1, 'Group name is required'),
   type: z.string().min(1, 'Animal type is required'),
-  gender: z.enum(['MALE', 'FEMALE'], {
-    error: () => ({ message: 'Invalid gender' }),
+  gender: z.enum(['MALE', 'FEMALE', 'BOTH'], {
+    error: 'Invalid gender',
   }),
-  average_weight: z.number().min(0, 'Average weight cannot be negative'),
-  average_age: z.number().min(0, 'Average age cannot be negative'),
   starting_number: z.number().min(1, 'Starting number must be at least 1'),
+  average_weight: z
+    .number()
+    .min(0, 'Average weight cannot be negative')
+    .optional(),
+  average_age: z.number().min(0, 'Average age cannot be negative').optional(),
+  arrival_date: dateString.optional(),
+  birthday: dateString.optional(),
   notes: z.string().optional(),
 })
 
-const baseFields = {
+const baseAnimalGroupFields = {
   group_name: z.string().min(1, 'Group name is required'),
-  housing: z.enum(['BARN', 'PASTURE', 'CAGE', 'PEN', 'COOP', 'STABLE'], {
-    error: () => ({ message: 'Invalid housing type' }),
-  }),
+  housing: z.enum(
+    ['BARN', 'PASTURE', 'CAGE', 'PEN', 'COOP', 'STABLE', 'FREE_RANGE', 'MIXED'],
+    {
+      error: 'Invalid housing type',
+    }
+  ),
   group_created_date: dateString,
 }
 
-const baseAnimalGroupSchema = z.discriminatedUnion('type', [
+const animalGroupSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('Individual'),
-    ...baseFields,
-    animals: individualAnimalSchema.optional(),
+    ...baseAnimalGroupFields,
+    animals: z
+      .array(individualAnimalSchema)
+      .min(1, 'At least one animal is required'),
   }),
   z.object({
     type: z.literal('Group'),
-    ...baseFields,
-    animals: groupAnimalSchema.optional(),
+    ...baseAnimalGroupFields,
+    pack: groupAnimalSchema,
   }),
 ])
 
-export const animalProjectSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Project name is required')
-    .max(100, 'Project name must be less than 100 characters'),
-  created_date: dateString,
-  type: z.literal('AnimalKeepingProject'),
-  status: z.enum(['Planning', 'Active', 'Completed', 'Archived']),
-  location: z.object({
-    country: z
+export const animalProjectSchema = z
+  .object({
+    name: z
       .string()
-      .min(2, 'Country is required')
-      .max(2, 'Country code must be 2 characters'),
-    city: z.string().min(1, 'City is required').max(100, 'City name too long'),
-    coordinate: z.object({
-      latitude: z
-        .number()
-        .min(-90, 'Latitude must be between -90 and 90')
-        .max(90, 'Latitude must be between -90 and 90'),
-      longitude: z
-        .number()
-        .min(-180, 'Longitude must be between -180 and 180')
-        .max(180, 'Longitude must be between -180 and 180'),
+      .min(1, 'Project name is required')
+      .max(100, 'Project name must be less than 100 characters'),
+    created_date: dateString,
+    type: z.literal('AnimalKeepingProject'),
+    status: z.enum(['Planning', 'Active', 'Completed']),
+    location: z.object({
+      country: z
+        .string()
+        .min(2, 'Country is required')
+        .max(2, 'Country code must be 2 characters'),
+      city: z
+        .string()
+        .min(1, 'City is required')
+        .max(100, 'City name too long'),
+      coordinate: z.object({
+        latitude: z
+          .number()
+          .min(-90, 'Latitude must be between -90 and 90')
+          .max(90, 'Latitude must be between -90 and 90'),
+        longitude: z
+          .number()
+          .min(-180, 'Longitude must be between -180 and 180')
+          .max(180, 'Longitude must be between -180 and 180'),
+      }),
     }),
-  }),
-  animal_group: baseAnimalGroupSchema,
-})
+
+    animal: individualAnimalSchema.optional(),
+
+    animal_group: animalGroupSchema.optional(),
+
+    farm_id: uuidSchema,
+    plot_id: uuidSchema,
+  })
+
+  .refine((data) => !(data.animal && data.animal_group), {
+    message: 'Cannot have both animal and animal_group',
+    path: ['animal_group'],
+  })
+
+export const animalProjectUpdateSchema = animalProjectSchema.partial()
 
 export type AnimalProjectForm = z.infer<typeof animalProjectSchema>
+export type AnimalProjectUpdateForm = z.infer<typeof animalProjectUpdateSchema>
 export type IndividualAnimalForm = z.infer<typeof individualAnimalSchema>
 export type GroupAnimalForm = z.infer<typeof groupAnimalSchema>
+export type AnimalGroupForm = z.infer<typeof animalGroupSchema>

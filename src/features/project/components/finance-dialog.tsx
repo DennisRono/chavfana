@@ -33,6 +33,7 @@ import {
 import { toast } from 'sonner'
 import { FinanceKind, TransactionType } from '@/types/finance'
 
+// Nangoja hizi Enpoints from the backend to proceed
 // Missing Inventory Endpoints
 // Listing inventory items
 // Creating inventory items

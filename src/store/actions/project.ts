@@ -38,37 +38,6 @@ export const createProject = createAsyncThunk<
       user: state?.auth?.user?.id,
     }
 
-    const { location, animal_group, ...projectWithoutLocation } = transformedData
-
-    // For AnimalKeepingProject, transform the data structure to match backend expectations
-    if (projectData.type === 'AnimalKeepingProject') {
-      if (animal_group.type === 'Individual') {
-        // For individual animals, send as 'animal'
-        transformedData = {
-          ...projectWithoutLocation,
-          animal: {
-            ...animal_group.animals,
-            group_name: animal_group.group_name,
-            housing: animal_group.housing,
-            group_created_date: animal_group.group_created_date,
-          }
-        }
-      } else if (animal_group.type === 'Group') {
-        // For group animals, send as 'animal_group'
-        transformedData = {
-          ...projectWithoutLocation,
-          animal_group: {
-            ...animal_group.animals,
-            group_name: animal_group.group_name,
-            housing: animal_group.housing,
-            group_created_date: animal_group.group_created_date,
-          }
-        }
-      }
-    }
-
-    transformedData.location = location
-
     const response = await fetch(`${BASE_URL}/api/projects/`, {
       method: 'POST',
       headers: {

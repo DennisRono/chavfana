@@ -2,7 +2,7 @@ import React from 'react'
 import dynamic from 'next/dynamic'
 import Loader from '@/components/shared/loader'
 
-const AnimalFarmingView = dynamic(() => import('@/features/animal-farming/index'), {
+const AnimalFarmingView = dynamic(() => import('@/features/animal-farming/index1'), {
   ssr: true,
   loading: () => <Loader />,
 })
